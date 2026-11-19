@@ -1,0 +1,196 @@
+####################################################################################################
+# +----------------------------------------------------------------------------------------------+ #
+# |                                   __         __   ___  __         __                         | #
+# |                        |    |  | /  ` |__/  |__) |__  |__)  |\/| /__`                        | #
+# |                        |___ \__/ \__, |  \  |    |___ |  \  |  | .__/                        | #
+# |                                                                                              | #
+# |                                  LuckPerms for golem                                         | #
+# |                                 https://luckperms.net                                        | #
+# +----------------------------------------------------------------------------------------------+ #
+####################################################################################################
+
+# The name of the server, used for server specific permissions.
+# When set to "global" this setting is effectively ignored.
+server: global
+
+# If the server's own UUID cache should be used when there is no record for a player in LuckPerms.
+use-server-uuid-cache: true
+
+# How the plugin should store data.
+# Possible options:
+#   Remote databases:  mysql, mariadb, postgresql, mongodb
+#   Local database:    sqlite
+#   Text files:        yaml, yaml-combined, json, json-combined, toml, toml-combined
+storage-method: yaml
+
+# Remote database connection settings (only needed for mysql/mariadb/postgresql/mongodb).
+data:
+  address: localhost
+  database: minecraft
+  username: root
+  password: ''
+  pool-settings:
+    maximum-pool-size: 10
+    minimum-idle: 10
+    maximum-lifetime: 1800000
+    keepalive-time: 0
+    connection-timeout: 5000
+    properties: {}
+  table-prefix: 'luckperms_'
+  mongodb-collection-prefix: ''
+  mongodb-connection-uri: ''
+
+# Split storage allows using different backends for different data types.
+split-storage:
+  enabled: false
+  methods:
+    user: yaml
+    group: yaml
+    track: yaml
+    uuid: yaml
+    log: yaml
+
+# How frequently LuckPerms will perform a sync task (in minutes). Set to -1 to disable.
+sync-minutes: -1
+
+# If the file watcher should be enabled to detect manual edits to file-based storage.
+watch-files: true
+
+# Messaging service for syncing updates across multiple servers.
+# Possible options: auto, none, sql, postgres, pluginmsg, redis, nats, rabbitmq, custom
+messaging-service: auto
+auto-push-updates: true
+push-log-entries: true
+broadcast-received-log-entries: true
+
+redis:
+  enabled: false
+  address: localhost
+  addresses: []
+  username: ''
+  password: ''
+  ssl: false
+  sentinel:
+    enabled: false
+    master: mymaster
+    addresses:
+      - localhost:26379
+    username: ''
+    password: ''
+
+nats:
+  enabled: false
+  address: localhost
+  username: ''
+  password: ''
+  token: ''
+  ssl: false
+
+rabbitmq:
+  enabled: false
+  address: localhost
+  vhost: '/'
+  username: 'guest'
+  password: 'guest'
+
+# Controls how temporary permissions/parents/meta should be accumulated.
+# Possible options: accumulate, replace, deny
+temporary-add-behaviour: deny
+
+# Controls how LuckPerms will determine a user's primary group.
+# Possible options: stored, parents-by-weight, all-parents-by-weight
+primary-group-calculation: parents-by-weight
+
+# If the plugin should check for extra argument-based permissions when users run LP commands.
+argument-based-command-permissions: false
+
+# If the plugin should check whether senders are a member of a group before modifying it.
+require-sender-group-membership-to-modify: false
+
+# If the plugin should send log notifications to users with luckperms.log.notify.
+log-notify: true
+
+# RegEx patterns matching log entry descriptions that should not be broadcast as notifications.
+log-notify-filtered-descriptions: []
+
+# If LuckPerms should automatically download and update community translation bundles.
+auto-install-translations: false
+
+# Prefix and suffix stacking options.
+meta-formatting:
+  prefix:
+    format:
+      - "highest"
+    duplicates: first-only
+    start-spacer: ""
+    middle-spacer: " "
+    end-spacer: ""
+  suffix:
+    format:
+      - "highest"
+    duplicates: first-only
+    start-spacer: ""
+    middle-spacer: " "
+    end-spacer: ""
+
+# Inheritance traversal algorithm: breadth-first, depth-first-pre-order, depth-first-post-order
+inheritance-traversal-algorithm: depth-first-pre-order
+
+# Whether a final sort by inheritance rules (weight, primary group) runs after traversal.
+post-traversal-inheritance-sort: false
+
+# Mode used to determine whether a set of contexts are satisfied.
+# Possible options: at-least-one-value-per-key, all-values-per-key
+context-satisfy-mode: at-least-one-value-per-key
+
+# Built-in context keys to disable (e.g. world, gamemode, dimension-type).
+disabled-contexts: []
+
+# Permission resolution settings.
+include-global: true
+include-global-world: true
+apply-global-groups: true
+apply-global-world-groups: true
+
+# Meta value selection: inheritance, highest-number, lowest-number
+meta-value-selection-default: inheritance
+meta-value-selection: {}
+
+# Permission calculation processors.
+apply-wildcards: true
+apply-sponge-implicit-wildcards: false
+apply-default-negated-permissions-before-wildcards: false
+apply-regex: true
+apply-shorthand: true
+apply-bukkit-child-permissions: true
+apply-bukkit-default-permissions: true
+
+# Aliases for world context values.
+world-rewrite: {}
+
+# Per-server group weight overrides.
+group-weight: {}
+
+# Server Operator (OP) settings.
+enable-ops: true
+auto-op: false
+commands-allow-op: true
+
+# Miscellaneous settings.
+debug-logins: false
+allow-invalid-usernames: false
+skip-bulkupdate-confirmation: false
+disable-bulkupdate: false
+prevent-primary-group-removal: false
+resolve-command-selectors: false
+commands-rate-limit: false
+
+# Read-only mode for commands.
+commands-read-only-mode:
+  players: false
+  console: false
+
+# Disable LuckPerms commands.
+disable-luckperms-commands:
+  players: false
+  console: false
