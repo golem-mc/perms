@@ -1,202 +1,68 @@
 # LuckPerms for golem
 
 An unofficial port of [LuckPerms](https://luckperms.net/) to
-[golem](https://github.com/golem-mc/golem), the Minecraft: Java Edition
-server written in Go. It implements golem's `plugin.PermissionProvider`
-service and keeps LuckPerms's `/luckperms` (`/lp`) commands, permission
-nodes, contexts, storage formats, multi-server messaging protocols, and Web
-Editor compatibility, so anyone who knows LuckPerms on Bukkit or Paper will
-find the same plugin here.
+[golem](https://github.com/golem-mc/golem), implementing golem's permission
+provider with LuckPerms's `/lp` commands, permission nodes, contexts, storage
+formats, multi-server messaging, and Web Editor. See the
+[LuckPerms wiki](https://luckperms.net/wiki/Home) and
+[Command Usage](https://luckperms.net/wiki/Command-Usage) for full command
+reference.
 
-## What's included
-
-- **Permission engine** — Direct nodes, registered golem/Bukkit child
-  permissions, regex nodes (`r=...`), wildcard nodes (`foo.*`, `*`), optional
-  Sponge-style implicit wildcards, shorthand expansions (`perm.{1-4}`,
-  `perm.(a|b)`), temporary nodes with expiration and accumulation policies,
-  and operator policies (`enable-ops`, `auto-op`).
-- **Groups, inheritance & tracks** — Configurable inheritance graph traversal
-  (`depth-first-pre-order`, `depth-first-post-order`, `breadth-first`), group
-  weights, display names, primary group calculation (`stored`,
-  `parents-by-weight`, `all-parents-by-weight`), tracks, promotion, and
-  demotion.
-- **Contexts** — Built-in `server`, `world` (with recursive `world-rewrite`),
-  `dimension-type`, and `gamemode` contexts, `contexts.json` static/default
-  contexts, `at-least-one-value-per-key` and `all-values-per-key` modes, plus
-  custom `ContextCalculator` registration via the API.
-- **Meta, prefixes & suffixes** — Priority stacking (`highest`, `lowest`,
-  `highest_own`, `highest_inherited`, `*_from_group_*`, `*_on_track_*`),
-  duplicate removal (`first-only`, `last-only`, `retain-all`), spacers, and
-  `meta-value-selection` (`inheritance`, `highest-number`, `lowest-number`).
-- **Storage backends** —
-  - Local files: `yaml`, `yaml-combined`, `json`, `json-combined`, `toml`,
-    `toml-combined` (with `watch-files` auto-sync)
-  - Local database: `sqlite` (pure Go, zero CGO; `h2` in migrated configs
-    maps automatically to `sqlite`)
-  - Remote databases: `mysql`, `mariadb`, `postgresql`, `mongodb` (using
-    LuckPerms's table/collection schemas)
-  - `split-storage` to route users, groups, tracks, UUID cache, and action
-    logs to separate backends
-  - `.json.gz` export/import (local files or `--upload`/`--web` via Bytebin)
-    compatible with Java LuckPerms
-- **Multi-server messaging** — `pluginmsg` (via golem's `Server.Messenger()`),
-  `sql`, `postgres` (`LISTEN`/`NOTIFY`), `redis` (standalone, cluster, and
-  sentinel), `nats`, `rabbitmq`, `custom` (via `API.RegisterMessengerProvider`),
-  and `/lp networksync`.
-- **Web Editor & Bytebin / Bytesocks** — `/lp editor` (plus
-  `user/group/track <target> editor`), live ECDSA P-256 signed Bytesocks
-  WebSocket editing, `/lp trusteditor <id>`, `/lp applyedits <code> [--force]`
-  with diff-merging, and web uploads for `/lp verbose upload`,
-  `/lp tree --web`, and `/lp export --upload`.
-- **Translations & selectors** — Bundled `luckperms_en.properties`, custom
-  and repository `.properties` bundles, `/lp translations [install]`, and
-  `resolve-command-selectors` (`@s`, `@p`, `@a`, `@r`).
-
-## Installing
-
-### With the golem launcher
+## Install
 
 Add the plugin with
 [`golem-launcher`](https://github.com/golem-mc/golem#installing-plugins):
 
 ```bash
-./golem-launcher plugin add github.com/golem-mc/perms
-./golem-launcher
+golem-launcher plugin add github.com/golem-mc/perms
 ```
 
-The plugin needs golem at commit `4f95109` or newer. If your server is too
-old, the launcher says so and tells you how to update it.
+Requires golem `4f95109` or newer.
 
-### Running from a checkout
+## What's included
 
-To try a change, run a server with this checkout's plugin built in. You need
-[mise](https://mise.jdx.dev/), which installs the Go version in `mise.toml`:
+- **Users & permissions** — direct, child, wildcard, regex, shorthand, and
+  temporary permission nodes, plus operator policies (`/lp user`, `/lp check`,
+  `/lp search`, `/lp bulkupdate`).
+- **Groups & tracks** — group inheritance, weights, display names, primary
+  groups, and promotion/demotion tracks (`/lp group`, `/lp track`,
+  `/lp creategroup`, `/lp deletegroup`, `/lp listgroups`, `/lp createtrack`,
+  `/lp deletetrack`, `/lp listtracks`).
+- **Contexts** — built-in `server`, `world`, `dimension-type`, and `gamemode`
+  contexts, plus static and default contexts in `contexts.json`.
+- **Meta, prefixes & suffixes** — priority-based meta, prefix, and suffix
+  stacking.
+- **Storage** — YAML, JSON, TOML, SQLite, MySQL, MariaDB, PostgreSQL, MongoDB,
+  split storage, and Java-compatible `.json.gz` export/import (`/lp export`,
+  `/lp import`, `/lp sync`).
+- **Multi-server messaging** — plugin messaging, SQL, PostgreSQL, Redis, NATS,
+  and RabbitMQ (`/lp networksync`).
+- **Web Editor & diagnostics** — live Web Editor, verbose permission checks,
+  permission tree, and action logs (`/lp editor`, `/lp applyedits`,
+  `/lp trusteditor`, `/lp verbose`, `/lp tree`, `/lp log`, `/lp info`).
+- **Translations** — repository and custom translation bundles
+  (`/lp translations`).
+- **Vault & plugin API** — provides
+  [Vault for golem](https://github.com/golem-mc/vault) permission and chat
+  services alongside `luckperms.API`.
 
-```bash
-git clone https://github.com/golem-mc/perms.git
-cd perms
-mise run dev
-```
-
-This runs `golem-launcher` (a Go tool pinned in `go.mod`) in `dev/`, with the
-golem version `go.mod` requires and this directory as the plugin. The server
-writes `server.properties`, the world and `plugins/` into `dev/`, which git
-ignores. Stop it with `stop` or Ctrl+C.
+Differences from Java LuckPerms a server owner may notice: embedded SQL uses
+SQLite instead of H2 (`storage-method: h2` maps to `sqlite`), there is no
+PlaceholderAPI bridge, and legacy Bukkit `permissions.yml` / `/lp migration`
+importers are omitted (use `/lp export` and `/lp import` instead). See
+[PORTING.md](PORTING.md) for porting and developer details.
 
 ## Configuration
 
-On first start, LuckPerms writes its files to `plugins/luckperms/`:
-
-- `config.yml` — the main configuration (storage method, split storage,
-  database credentials, messaging service, inheritance/meta rules, world
-  rewrites, web service URLs, and operator policies).
-- `contexts.json` — static and default contexts.
-- `yaml-storage/` (or `json-storage/`, `toml-storage/`, `luckperms-sqlite.db`)
-  — permission data.
-- `translations/` — optional downloaded (`repository/`) and local (`custom/`)
-  `.properties` translation bundles.
-
-These match LuckPerms's own files, so its
-[documentation](https://luckperms.net/wiki/Home) applies. Run
-`/lp reloadconfig` after editing `config.yml` or `contexts.json`, or `/lp sync`
-after editing storage files.
-
-### Moving from a Bukkit or Paper server
-
-Copy the files from the old server's `plugins/LuckPerms/` folder into
-`plugins/luckperms/`. Existing YAML, JSON, TOML, SQLite, MySQL/MariaDB,
-PostgreSQL, and MongoDB data loads as-is, and `.json.gz` files produced by
-`/lp export` on Java LuckPerms can be imported directly with `/lp import`.
-If your old `config.yml` uses `storage-method: h2`, it automatically maps to
-`sqlite`; export from H2 via `/lp export` on Java and import with `/lp import`
-to migrate H2 data cleanly.
-
-## Plugin API
-
-LuckPerms registers itself with `plugin.LoadBefore("essentials", "vault")`
-and provides both golem's `plugin.PermissionProvider` service and its own
-`luckperms.API` service:
-
-```go
-if lp, ok := plugin.Service[luckperms.API](server); ok {
-    group := lp.PrimaryGroup(player)
-    prefix := lp.Prefix(player)
-    suffix := lp.Suffix(player)
-    state := lp.CheckPermission(player, "myplugin.use")
-}
-```
-
-### Vault
-
-LuckPerms provides [Vault for golem](https://github.com/golem-mc/vault)'s
-`vault.Permission` and `vault.Chat` services at high priority, as its Bukkit
-Vault hook does (`LuckPermsVaultPermission`, `LuckPermsVaultChat`), so
-plugins written against Vault see LuckPerms' groups, permissions, prefixes,
-suffixes and meta, for online and offline players. A world argument becomes
-the `world` context; changes are made in the `vault-server` (or `server`)
-context. The `vault-*` options in `config.yml` (`vault-group-use-displaynames`,
-`vault-npc-group`, `vault-npc-op-status`, `use-vault-server`, `vault-server`,
-`vault-include-global`, `vault-ignore-world`) work as on Bukkit.
-
-```go
-if chat, ok := vault.LookupChat(server); ok {
-    prefix := chat.PlayerPrefix(player.World(), player.UUID())
-}
-```
-
-Other plugins can also register custom `core.ContextCalculator` and
-`core.MessengerProvider` implementations through `API`, and subscribe to
-events (`core.NodeAddEvent`, `core.NodeRemoveEvent`,
-`core.UserDataRecalculateEvent`, `core.GroupCreateEvent`,
-`core.GroupDeleteEvent`, `core.UserPromoteEvent`, `core.UserDemoteEvent`).
-
-## Differences from Java LuckPerms
-
-- **No H2 engine.** Pure-Go `sqlite` (`modernc.org/sqlite`, zero CGO) is used
-  for embedded SQL storage; `h2` in a migrated `config.yml` falls back to
-  `sqlite` with a warning.
-- **No PlaceholderAPI bridge.** Other golem plugins query groups, prefixes,
-  suffixes, meta, and permissions through Vault (below) or directly via
-  `plugin.Service[luckperms.API](s)`.
-- **`vault-unsafe-lookups` is not read.** golem cannot yet tell a plugin
-  whether it runs on the tick goroutine, so a Vault lookup of an offline
-  player always loads them from storage on the caller's goroutine.
-- **No legacy Bukkit permissions.yml or `/lp migration` importers.** Use
-  `/lp export` and `/lp import` (`.json.gz` or `--web`) to move data between
-  installations.
-
-## Development
-
-```bash
-mise exec -- go test -race ./...
-mise exec -- go vet ./...
-mise exec -- go mod tidy -diff
-```
-
-The root package tests run a real golem server inside the test process
-(golem's `plugintest`), join players, and verify commands, contexts, storage,
-and services end to end.
-
-`go.mod` pins a golem commit. To move to a newer one:
-
-```bash
-mise exec -- go get github.com/golem-mc/golem@<commit>
-```
-
-To build against a local golem checkout instead, create a `go.work`, which git
-ignores:
-
-```bash
-go work init . ../golem
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for commit conventions and the release
-process.
+On first start, LuckPerms writes `config.yml`, `contexts.json`, and storage
+files to `plugins/luckperms/`. They match LuckPerms's own
+[configuration](https://luckperms.net/wiki/Configuration); run
+`/lp reloadconfig` after editing config files or `/lp sync` after editing
+storage files. To migrate from Bukkit or Paper, copy `plugins/LuckPerms/` into
+`plugins/luckperms/` (or transfer data with `/lp export` and `/lp import`).
 
 ## License
 
 MIT — see [LICENSE](LICENSE). Derived from
-[LuckPerms](https://github.com/LuckPerms/LuckPerms) by lucko and
-contributors, including the bundled `config.yml` and
-`luckperms_en.properties`. This project is not affiliated with or endorsed by
-LuckPerms.
+[LuckPerms](https://github.com/LuckPerms/LuckPerms) by lucko and contributors.
+Not affiliated with or endorsed by LuckPerms.
