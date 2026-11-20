@@ -9,6 +9,7 @@ run Go through it so you get that version:
 mise install
 mise exec -- go build ./...
 mise exec -- go test -race ./...
+mise run dev                   # run a server with your checkout's plugin
 ```
 
 ## Before you open a pull request
@@ -18,6 +19,7 @@ mise exec -- gofmt -l .        # must print nothing
 mise exec -- go vet ./...
 mise exec -- go mod tidy -diff
 mise exec -- go test -race ./...
+mise run dev:check             # the server builds with the plugin
 ```
 
 CI runs the same checks on every pull request.

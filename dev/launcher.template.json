@@ -1,0 +1,7 @@
+{
+  "server": "@GOLEM@",
+  "plugins": [
+    ".."
+  ],
+  "updateCheck": false
+}
