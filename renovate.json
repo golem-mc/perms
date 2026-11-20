@@ -49,16 +49,31 @@
       ]
     },
     {
-      "description": "Minecraft 26.3 needs Java 25; the reference server stays on that major.",
-      "matchDepNames": [
-        "java"
+      "description": "golem-mc modules update once a day, as one group.",
+      "matchPackageNames": [
+        "github.com/golem-mc/**"
       ],
-      "enabled": false
+      "groupName": "golem-mc modules",
+      "schedule": [
+        "* 0-5 * * *"
+      ],
+      "automerge": true
+    },
+    {
+      "description": "golem updates come as one PR.",
+      "matchPackageNames": [
+        "github.com/golem-mc/golem"
+      ],
+      "groupName": "golem"
     },
     {
       "description": "mise ships almost daily; take it weekly once a release has settled.",
-      "matchDepNames": ["jdx/mise"],
-      "schedule": ["* 0-6 * * 1"],
+      "matchDepNames": [
+        "jdx/mise"
+      ],
+      "schedule": [
+        "* 0-6 * * 1"
+      ],
       "minimumReleaseAge": "3 days"
     }
   ],
