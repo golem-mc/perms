@@ -77,7 +77,7 @@ can also edit by hand:
 }
 ```
 
-The plugin needs golem at commit `056d502` or newer. If your server is too
+The plugin needs golem at commit `4f95109` or newer. If your server is too
 old, the launcher says so and tells you how to update it.
 
 ### As a ready-built server
@@ -139,6 +139,24 @@ if lp, ok := plugin.Service[luckperms.API](server); ok {
 }
 ```
 
+### Vault
+
+LuckPerms provides [Vault for golem](https://github.com/golem-mc/vault)'s
+`vault.Permission` and `vault.Chat` services at high priority, as its Bukkit
+Vault hook does (`LuckPermsVaultPermission`, `LuckPermsVaultChat`), so
+plugins written against Vault see LuckPerms' groups, permissions, prefixes,
+suffixes and meta, for online and offline players. A world argument becomes
+the `world` context; changes are made in the `vault-server` (or `server`)
+context. The `vault-*` options in `config.yml` (`vault-group-use-displaynames`,
+`vault-npc-group`, `vault-npc-op-status`, `use-vault-server`, `vault-server`,
+`vault-include-global`, `vault-ignore-world`) work as on Bukkit.
+
+```go
+if chat, ok := vault.LookupChat(server); ok {
+    prefix := chat.PlayerPrefix(player.World(), player.UUID())
+}
+```
+
 Other plugins can also register custom `core.ContextCalculator` and
 `core.MessengerProvider` implementations through `API`, and subscribe to
 events (`core.NodeAddEvent`, `core.NodeRemoveEvent`,
@@ -150,9 +168,12 @@ events (`core.NodeAddEvent`, `core.NodeRemoveEvent`,
 - **No H2 engine.** Pure-Go `sqlite` (`modernc.org/sqlite`, zero CGO) is used
   for embedded SQL storage; `h2` in a migrated `config.yml` falls back to
   `sqlite` with a warning.
-- **No Vault or PlaceholderAPI bridges.** Other golem plugins query groups,
-  prefixes, suffixes, meta, and permissions directly via
+- **No PlaceholderAPI bridge.** Other golem plugins query groups, prefixes,
+  suffixes, meta, and permissions through Vault (below) or directly via
   `plugin.Service[luckperms.API](s)`.
+- **`vault-unsafe-lookups` is not read.** golem cannot yet tell a plugin
+  whether it runs on the tick goroutine, so a Vault lookup of an offline
+  player always loads them from storage on the caller's goroutine.
 - **No legacy Bukkit permissions.yml or `/lp migration` importers.** Use
   `/lp export` and `/lp import` (`.json.gz` or `--web`) to move data between
   installations.

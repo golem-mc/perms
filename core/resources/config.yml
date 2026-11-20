@@ -176,6 +176,26 @@ enable-ops: true
 auto-op: false
 commands-allow-op: true
 
+# Vault integration settings, for plugins that use Vault's Permission and Chat
+# services (github.com/golem-mc/vault).
+#
+# If LuckPerms should use the 'display name' of a group when returning groups
+# in Vault API calls.
+vault-group-use-displaynames: true
+# The group LuckPerms uses for NPC players (version 2 UUIDs) in Vault requests.
+vault-npc-group: default
+# If NPC players count as operators in Vault requests.
+vault-npc-op-status: false
+# If the vault-server option below should be used.
+use-vault-server: false
+# The name of the server used within Vault operations; "global" for none.
+vault-server: global
+# If global permissions should be considered when retrieving meta or player
+# groups.
+vault-include-global: true
+# If Vault operations should ignore any world arguments if supplied.
+vault-ignore-world: false
+
 # Miscellaneous settings.
 debug-logins: false
 allow-invalid-usernames: false

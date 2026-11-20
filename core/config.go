@@ -172,6 +172,15 @@ type Config struct {
 	AutoOp          bool
 	CommandsAllowOp bool
 
+	// The Vault hook's settings (vault.go).
+	VaultGroupUseDisplayNames bool
+	VaultNPCGroup             string
+	VaultNPCOpStatus          bool
+	UseVaultServer            bool
+	VaultServer               string
+	VaultIncludeGlobal        bool
+	VaultIgnoreWorld          bool
+
 	DebugLogins                bool
 	AllowInvalidUsernames      bool
 	SkipBulkUpdateConfirmation bool
@@ -268,6 +277,10 @@ func DefaultConfig() *Config {
 		EnableOps:                 true,
 		AutoOp:                    false,
 		CommandsAllowOp:           true,
+		VaultGroupUseDisplayNames: true,
+		VaultNPCGroup:             DefaultGroupName,
+		VaultServer:               GlobalContextValue,
+		VaultIncludeGlobal:        true,
 		BytebinURL:                "https://usercontent.luckperms.net/",
 		BytesocksURL:              "https://usersockets.luckperms.net/",
 		WebEditorURL:              "https://luckperms.net/editor/",
@@ -402,6 +415,14 @@ type rawConfig struct {
 	EnableOps       *bool `yaml:"enable-ops"`
 	AutoOp          *bool `yaml:"auto-op"`
 	CommandsAllowOp *bool `yaml:"commands-allow-op"`
+
+	VaultGroupUseDisplayNames *bool   `yaml:"vault-group-use-displaynames"`
+	VaultNPCGroup             *string `yaml:"vault-npc-group"`
+	VaultNPCOpStatus          *bool   `yaml:"vault-npc-op-status"`
+	UseVaultServer            *bool   `yaml:"use-vault-server"`
+	VaultServer               *string `yaml:"vault-server"`
+	VaultIncludeGlobal        *bool   `yaml:"vault-include-global"`
+	VaultIgnoreWorld          *bool   `yaml:"vault-ignore-world"`
 
 	DebugLogins                *bool `yaml:"debug-logins"`
 	AllowInvalidUsernames      *bool `yaml:"allow-invalid-usernames"`
@@ -768,6 +789,15 @@ func ParseConfigBytes(data []byte) (*Config, error) {
 	if raw.CommandsAllowOp != nil {
 		cfg.CommandsAllowOp = *raw.CommandsAllowOp
 	}
+	setIf(&cfg.VaultGroupUseDisplayNames, raw.VaultGroupUseDisplayNames)
+	setIf(&cfg.VaultNPCGroup, raw.VaultNPCGroup)
+	setIf(&cfg.VaultNPCOpStatus, raw.VaultNPCOpStatus)
+	setIf(&cfg.UseVaultServer, raw.UseVaultServer)
+	if raw.VaultServer != nil {
+		cfg.VaultServer = strings.ToLower(*raw.VaultServer)
+	}
+	setIf(&cfg.VaultIncludeGlobal, raw.VaultIncludeGlobal)
+	setIf(&cfg.VaultIgnoreWorld, raw.VaultIgnoreWorld)
 	if raw.DebugLogins != nil {
 		cfg.DebugLogins = *raw.DebugLogins
 	}
@@ -863,5 +893,12 @@ func parseMetaSel(s string) MetaValueSelection {
 		return MetaSelectLowestNumber
 	default:
 		return MetaSelectInheritance
+	}
+}
+
+// setIf sets *dst to *v when the key was present.
+func setIf[T any](dst *T, v *T) {
+	if v != nil {
+		*dst = *v
 	}
 }

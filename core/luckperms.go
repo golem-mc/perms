@@ -140,6 +140,7 @@ func Enable(s plugin.Server) (*LuckPerms, error) {
 	// Provide golem's PermissionProvider service and LuckPerms's own API service.
 	plugin.Provide[plugin.PermissionProvider](s, &permissionProvider{lp: lp}, 100)
 	plugin.Provide[API](s, &apiService{lp: lp}, 100)
+	lp.provideVault()
 
 	lp.registerListeners()
 	lp.startTasks()
