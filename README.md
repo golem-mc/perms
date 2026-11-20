@@ -60,21 +60,8 @@ Add the plugin with
 [`golem-launcher`](https://github.com/golem-mc/golem#installing-plugins):
 
 ```bash
-./golem-launcher plugin add github.com/golem-mc/perms@<version>
+./golem-launcher plugin add github.com/golem-mc/perms
 ./golem-launcher
-```
-
-`<version>` is a release tag (e.g. `v0.1.0`), or a commit hash while there
-are no releases. The launcher writes the plugin to `launcher.json`, which you
-can also edit by hand:
-
-```json
-{
-  "server": "<golem version>",
-  "plugins": [
-    "github.com/golem-mc/perms@<version>"
-  ]
-}
 ```
 
 The plugin needs golem at commit `4f95109` or newer. If your server is too
