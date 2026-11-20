@@ -6,6 +6,7 @@ import (
 	"cmp"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -420,9 +421,7 @@ func (s *FileStorage) wrapEntry(key, keyField string, attrs map[string]any) any 
 	}
 	out := make(map[string]any, len(attrs)+1)
 	out[keyField] = key
-	for k, v := range attrs {
-		out[k] = v
-	}
+	maps.Copy(out, attrs)
 	return out
 }
 

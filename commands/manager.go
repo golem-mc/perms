@@ -54,16 +54,14 @@ func Register(lp *core.LuckPerms) *Manager {
 		Aliases:     []string{"lp", "perm", "perms", "permission", "permissions"},
 		Description: "Manage permissions",
 		Usage:       "/lp <subcommand>",
-		Node: plugin.Node{
+		Run:         run,
+		Children: []plugin.Node{{
+			Arg: plugin.GreedyArg("args"),
 			Run: run,
-			Children: []plugin.Node{{
-				Arg: plugin.GreedyArg("args"),
-				Run: run,
-				Suggest: func(ctx *plugin.CommandContext, partial string) []string {
-					return m.Complete(ctx.Sender, partial)
-				},
-			}},
-		},
+			Suggest: func(ctx *plugin.CommandContext, partial string) []string {
+				return m.Complete(ctx.Sender, partial)
+			},
+		}},
 	}
 	if err := lp.Server.Commands().Register(cmd); err != nil {
 		lp.Log.Error("Failed to register /luckperms command", "err", err)
@@ -603,7 +601,7 @@ func isValidGroupOrTrackName(name string) bool {
 		return false
 	}
 	for _, r := range name {
-		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '-' || r == '_' || r == '.') {
+		if (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') && (r < '0' || r > '9') && r != '-' && r != '_' && r != '.' {
 			return false
 		}
 	}

@@ -2,27 +2,31 @@
 
 ## Setup
 
-Go is pinned in `mise.toml`. With [mise](https://mise.jdx.dev/) installed,
-run Go through it so you get that version:
+Go and the other tools are pinned in `mise.toml`. With
+[mise](https://mise.jdx.dev/) installed, run everything through it so you get
+those versions (`mise tasks` lists them):
 
 ```bash
 mise install
-mise exec -- go build ./...
-mise exec -- go test -race ./...
+mise run build
 mise run dev                   # run a server with your checkout's plugin
 ```
 
 ## Before you open a pull request
 
 ```bash
-mise exec -- gofmt -l .        # must print nothing
-mise exec -- go vet ./...
-mise exec -- go mod tidy -diff
-mise exec -- go test -race ./...
-mise run dev:check             # the server builds with the plugin
+mise run fmt         # gofmt
+mise run fix         # go fix's modernizations
+mise run tidy        # go.mod and go.sum
+mise run build
+mise run lint        # golangci-lint
+mise run test:changed   # repeats the tests your branch adds or changes
+mise run dev:check         # the server builds with the plugin
 ```
 
-CI runs the same checks on every pull request.
+Run only the tests you add or change while working; CI runs the rest
+(`mise run test`) as separate Build, Lint, Test, Fix, Format and Tidy jobs,
+and `mise run check` runs all of them locally.
 
 ## Commit messages and releases
 

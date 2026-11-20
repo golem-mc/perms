@@ -96,7 +96,7 @@ func (r *PermissionRegistry) BuildTree(scope string, maxDepth int, checkFn func(
 	cur := r.root
 	prefix := ""
 	if scope != "" {
-		for _, part := range strings.Split(scope, ".") {
+		for part := range strings.SplitSeq(scope, ".") {
 			if part == "" {
 				continue
 			}

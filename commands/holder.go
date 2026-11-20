@@ -365,360 +365,390 @@ func (m *Manager) cmdHolderParent(sender plugin.CommandSender, label string, h *
 
 	switch sub {
 	case "info":
-		if !m.requirePerm(sender, h.perm(core.PermUserParentInfo, core.PermGroupParentInfo)) {
-			return 0
-		}
-		page := parsePage(rest, 0)
-		var nodes []core.Node
-		for _, n := range h.holder.NormalNodes() {
-			if n.Type == core.NodeTypeInheritance {
-				nodes = append(nodes, n)
-			}
-		}
-		slices.SortStableFunc(nodes, core.CompareNodes)
-		slice, curPage, totalPages := paginate(nodes, page, 8)
-		core.SendPrefixed(sender,
-			plugin.Plain(h.display).Color("aqua"),
-			plugin.Plain("'s Parent Groups: ").Color("green"),
-			plugin.Plain(fmt.Sprintf("(page %d of %d - %d entries)", curPage, totalPages, len(nodes))).Color("gray"),
-		)
-		if len(slice) == 0 {
-			sender.SendMessage(plugin.Plain("  None").Color("gray"))
-			return 1
-		}
-		for _, n := range slice {
-			line := plugin.Plain("> ").Color("dark_aqua").Append(
-				plugin.Plain(n.GroupName).Color("aqua"),
-				core.FormatContexts(n.Contexts),
-			)
-			if n.HasExpiry() {
-				line = line.Append(plugin.Plain(" [expires in " + core.FormatDuration(time.Until(n.Expiry)) + "]").Color("yellow"))
-			}
-			sender.SendMessage(line)
-		}
-		return 1
-
+		return m.cmdHolderParentInfo(sender, label, h, rest)
 	case "add":
-		if !m.requirePerm(sender, h.perm(core.PermUserParentAdd, core.PermGroupParentAdd)) || !h.checkModify(m, sender) {
-			return 0
-		}
-		if len(rest) < 1 {
-			core.SendError(sender, fmt.Sprintf("Usage: /%s %s %s parent add <group> [context...]", label, h.holder.Type(), h.display))
-			return 0
-		}
-		groupName := strings.ToLower(rest[0])
-		if m.lp.Groups.GetIfLoaded(groupName) == nil {
-			core.SendError(sender, "Group "+groupName+" does not exist.")
-			return 0
-		}
-		if !m.lp.CheckModifyGroupPermission(sender, groupName, "parent.add") {
-			core.SendError(sender, "You do not have permission to add parent group "+groupName+".")
-			return 0
-		}
-		if !h.isUser() && h.group.Name() == groupName {
-			core.SendError(sender, "A group cannot inherit from itself.")
-			return 0
-		}
-		contexts := parseContextsOrDefault(m.lp, rest[1:])
-		node := core.NewInheritanceNode(groupName).WithContexts(contexts)
-		if res := h.holder.SetNode(core.DataNormal, node); !res.WasSuccessful() {
-			core.SendError(sender, fmt.Sprintf("%s already inherits from %s%s.", h.display, groupName, describeContextSuffix(contexts)))
-			return 0
-		}
-		if err := h.save(); err != nil {
-			core.SendError(sender, "Failed to save data: "+err.Error())
-			return 0
-		}
-		h.log(m, sender, fmt.Sprintf("parent add %s%s", groupName, describeContextSuffix(contexts)))
-		core.SendInfo(sender, fmt.Sprintf("%s now inherits permissions from %s%s.", h.display, groupName, describeContextSuffix(contexts)))
-		return 1
-
+		return m.cmdHolderParentAdd(sender, label, h, rest)
 	case "set":
-		if !m.requirePerm(sender, h.perm(core.PermUserParentSet, core.PermGroupParentSet)) || !h.checkModify(m, sender) {
-			return 0
-		}
-		if len(rest) < 1 {
-			core.SendError(sender, fmt.Sprintf("Usage: /%s %s %s parent set <group> [context...]", label, h.holder.Type(), h.display))
-			return 0
-		}
-		groupName := strings.ToLower(rest[0])
-		if m.lp.Groups.GetIfLoaded(groupName) == nil {
-			core.SendError(sender, "Group "+groupName+" does not exist.")
-			return 0
-		}
-		if !m.lp.CheckModifyGroupPermission(sender, groupName, "parent.set") {
-			core.SendError(sender, "You do not have permission to set parent group "+groupName+".")
-			return 0
-		}
-		if !h.isUser() && h.group.Name() == groupName {
-			core.SendError(sender, "A group cannot inherit from itself.")
-			return 0
-		}
-		contexts := parseContextsOrDefault(m.lp, rest[1:])
-		h.holder.ClearNodes(core.DataNormal, func(n core.Node) bool {
-			return n.Type == core.NodeTypeInheritance && n.Contexts.Equal(contexts)
-		})
-		h.holder.SetNode(core.DataNormal, core.NewInheritanceNode(groupName).WithContexts(contexts))
-		if h.isUser() && contexts.IsEmpty() {
-			h.user.SetStoredPrimaryGroup(groupName)
-		}
-		if err := h.save(); err != nil {
-			core.SendError(sender, "Failed to save data: "+err.Error())
-			return 0
-		}
-		h.log(m, sender, fmt.Sprintf("parent set %s%s", groupName, describeContextSuffix(contexts)))
-		core.SendInfo(sender, fmt.Sprintf("%s had their existing parent groups cleared, and now only inherits %s%s.", h.display, groupName, describeContextSuffix(contexts)))
-		return 1
-
+		return m.cmdHolderParentSet(sender, label, h, rest)
 	case "remove":
-		if !m.requirePerm(sender, h.perm(core.PermUserParentRemove, core.PermGroupParentRemove)) || !h.checkModify(m, sender) {
-			return 0
-		}
-		if len(rest) < 1 {
-			core.SendError(sender, fmt.Sprintf("Usage: /%s %s %s parent remove <group> [context...]", label, h.holder.Type(), h.display))
-			return 0
-		}
-		groupName := strings.ToLower(rest[0])
-		contexts := parseContextsOrDefault(m.lp, rest[1:])
-		if h.isUser() && contexts.IsEmpty() && m.lp.Config().PreventPrimaryGroupRemoval && strings.EqualFold(h.user.StoredPrimaryGroup(), groupName) {
-			core.SendError(sender, fmt.Sprintf("Cannot remove %s's primary group %s.", h.display, groupName))
-			return 0
-		}
-		node := core.NewInheritanceNode(groupName).WithContexts(contexts)
-		if res := h.holder.UnsetNode(core.DataNormal, node); !res.WasSuccessful() {
-			core.SendError(sender, fmt.Sprintf("%s does not inherit from %s%s.", h.display, groupName, describeContextSuffix(contexts)))
-			return 0
-		}
-		if h.isUser() {
-			h.user.GiveDefaultIfNeeded()
-			if contexts.IsEmpty() && strings.EqualFold(h.user.StoredPrimaryGroup(), groupName) {
-				h.user.SetStoredPrimaryGroup(core.DefaultGroupName)
-			}
-		}
-		if err := h.save(); err != nil {
-			core.SendError(sender, "Failed to save data: "+err.Error())
-			return 0
-		}
-		h.log(m, sender, fmt.Sprintf("parent remove %s%s", groupName, describeContextSuffix(contexts)))
-		core.SendInfo(sender, fmt.Sprintf("%s no longer inherits permissions from %s%s.", h.display, groupName, describeContextSuffix(contexts)))
-		return 1
-
+		return m.cmdHolderParentRemove(sender, label, h, rest)
 	case "addtemp":
-		if !m.requirePerm(sender, h.perm(core.PermUserParentAddTemp, core.PermGroupParentAddTemp)) || !h.checkModify(m, sender) {
-			return 0
-		}
-		if len(rest) < 2 {
-			core.SendError(sender, fmt.Sprintf("Usage: /%s %s %s parent addtemp <group> <duration> [accumulate|replace|deny] [context...]", label, h.holder.Type(), h.display))
-			return 0
-		}
-		groupName := strings.ToLower(rest[0])
-		if m.lp.Groups.GetIfLoaded(groupName) == nil {
-			core.SendError(sender, "Group "+groupName+" does not exist.")
-			return 0
-		}
-		dur, err := core.ParseDuration(rest[1])
-		if err != nil {
-			core.SendError(sender, "Invalid duration: "+rest[1])
-			return 0
-		}
-		idx := 2
-		strategy := m.lp.Config().TemporaryAddBehaviour
-		if idx < len(rest) {
-			if mod, ok := parseTempModifier(rest[idx]); ok {
-				strategy = mod
-				idx++
-			}
-		}
-		contexts := parseContextsOrDefault(m.lp, rest[idx:])
-		node := core.NewInheritanceNode(groupName).WithExpiry(time.Now().Add(dur)).WithContexts(contexts)
-		stored, res := h.holder.SetNodeTemp(core.DataNormal, node, strategy)
-		if !res.WasSuccessful() {
-			core.SendError(sender, fmt.Sprintf("%s already temporarily inherits from %s%s.", h.display, groupName, describeContextSuffix(contexts)))
-			return 0
-		}
-		if err := h.save(); err != nil {
-			core.SendError(sender, "Failed to save data: "+err.Error())
-			return 0
-		}
-		remStr := core.FormatDuration(time.Until(stored.Expiry))
-		h.log(m, sender, fmt.Sprintf("parent addtemp %s %s%s", groupName, remStr, describeContextSuffix(contexts)))
-		core.SendInfo(sender, fmt.Sprintf("%s now inherits permissions from %s for a duration of %s%s.", h.display, groupName, remStr, describeContextSuffix(contexts)))
-		return 1
-
+		return m.cmdHolderParentAddtemp(sender, label, h, rest)
 	case "removetemp":
-		if !m.requirePerm(sender, h.perm(core.PermUserParentRemoveTemp, core.PermGroupParentRemoveTemp)) || !h.checkModify(m, sender) {
-			return 0
-		}
-		if len(rest) < 1 {
-			core.SendError(sender, fmt.Sprintf("Usage: /%s %s %s parent removetemp <group> [duration] [context...]", label, h.holder.Type(), h.display))
-			return 0
-		}
-		groupName := strings.ToLower(rest[0])
-		idx := 1
-		var subtract time.Duration
-		if idx < len(rest) {
-			if d, err := core.ParseDuration(rest[idx]); err == nil {
-				subtract = d
-				idx++
-			}
-		}
-		contexts := parseContextsOrDefault(m.lp, rest[idx:])
-		node := core.NewInheritanceNode(groupName).WithContexts(contexts)
-		updated, removed, res := h.holder.UnsetNodeTemp(core.DataNormal, node, subtract)
-		if !res.WasSuccessful() {
-			core.SendError(sender, fmt.Sprintf("%s does not temporarily inherit from %s%s.", h.display, groupName, describeContextSuffix(contexts)))
-			return 0
-		}
-		if err := h.save(); err != nil {
-			core.SendError(sender, "Failed to save data: "+err.Error())
-			return 0
-		}
-		if removed {
-			h.log(m, sender, fmt.Sprintf("parent removetemp %s%s", groupName, describeContextSuffix(contexts)))
-			core.SendInfo(sender, fmt.Sprintf("Removed temporary parent %s from %s%s.", groupName, h.display, describeContextSuffix(contexts)))
-		} else {
-			h.log(m, sender, fmt.Sprintf("parent removetemp %s %s%s", groupName, core.FormatDuration(subtract), describeContextSuffix(contexts)))
-			core.SendInfo(sender, fmt.Sprintf("Subtracted %s from temporary parent %s for %s (%s remaining)%s.", core.FormatDuration(subtract), groupName, h.display, core.FormatDuration(time.Until(updated.Expiry)), describeContextSuffix(contexts)))
-		}
-		return 1
-
+		return m.cmdHolderParentRemovetemp(sender, label, h, rest)
 	case "settrack":
-		if !m.requirePerm(sender, h.perm(core.PermUserParentSetTrack, core.PermGroupParentSetTrack)) || !h.checkModify(m, sender) {
-			return 0
-		}
-		if len(rest) < 2 {
-			core.SendError(sender, fmt.Sprintf("Usage: /%s %s %s parent settrack <track> <group|index> [context...]", label, h.holder.Type(), h.display))
-			return 0
-		}
-		track := m.lp.Tracks.GetIfLoaded(rest[0])
-		if track == nil {
-			core.SendError(sender, "Track "+rest[0]+" does not exist.")
-			return 0
-		}
-		groupName := strings.ToLower(rest[1])
-		if idx, err := strconv.Atoi(groupName); err == nil {
-			gs := track.Groups()
-			if idx < 1 || idx > len(gs) {
-				core.SendError(sender, fmt.Sprintf("Track %s has %d groups.", track.Name(), len(gs)))
-				return 0
-			}
-			groupName = gs[idx-1]
-		}
-		if !track.ContainsGroup(groupName) {
-			core.SendError(sender, fmt.Sprintf("Track %s does not contain group %s.", track.Name(), groupName))
-			return 0
-		}
-		if m.lp.Groups.GetIfLoaded(groupName) == nil {
-			core.SendError(sender, "Group "+groupName+" does not exist.")
-			return 0
-		}
-		contexts := parseContextsOrDefault(m.lp, rest[2:])
-		h.holder.ClearNodes(core.DataNormal, func(n core.Node) bool {
-			return n.Type == core.NodeTypeInheritance && n.Contexts.Equal(contexts) && track.ContainsGroup(n.GroupName)
-		})
-		h.holder.SetNode(core.DataNormal, core.NewInheritanceNode(groupName).WithContexts(contexts))
-		if err := h.save(); err != nil {
-			core.SendError(sender, "Failed to save data: "+err.Error())
-			return 0
-		}
-		h.log(m, sender, fmt.Sprintf("parent settrack %s %s%s", track.Name(), groupName, describeContextSuffix(contexts)))
-		core.SendInfo(sender, fmt.Sprintf("Set %s to group %s on track %s%s.", h.display, groupName, track.Name(), describeContextSuffix(contexts)))
-		return 1
-
+		return m.cmdHolderParentSettrack(sender, label, h, rest)
 	case "clear":
-		if !m.requirePerm(sender, h.perm(core.PermUserParentClear, core.PermGroupParentClear)) || !h.checkModify(m, sender) {
-			return 0
-		}
-		var contexts core.ContextSet
-		filterCtx := len(rest) > 0
-		if filterCtx {
-			contexts = core.ParseContextSet(rest)
-		}
-		removed := h.holder.ClearNodes(core.DataNormal, func(n core.Node) bool {
-			return n.Type == core.NodeTypeInheritance && (!filterCtx || n.Contexts.Equal(contexts))
-		})
-		if h.isUser() {
-			h.user.GiveDefaultIfNeeded()
-			if !filterCtx || contexts.IsEmpty() {
-				h.user.SetStoredPrimaryGroup(core.DefaultGroupName)
-			}
-		}
-		if err := h.save(); err != nil {
-			core.SendError(sender, "Failed to save data: "+err.Error())
-			return 0
-		}
-		h.log(m, sender, fmt.Sprintf("parent clear%s", describeContextSuffix(contexts)))
-		core.SendInfo(sender, fmt.Sprintf("Cleared %d parent group(s) for %s%s.", removed, h.display, describeContextSuffix(contexts)))
-		return 1
-
+		return m.cmdHolderParentClear(sender, label, h, rest)
 	case "cleartrack":
-		if !m.requirePerm(sender, h.perm(core.PermUserParentClearTrack, core.PermGroupParentClearTrack)) || !h.checkModify(m, sender) {
-			return 0
-		}
-		if len(rest) < 1 {
-			core.SendError(sender, fmt.Sprintf("Usage: /%s %s %s parent cleartrack <track> [context...]", label, h.holder.Type(), h.display))
-			return 0
-		}
-		track := m.lp.Tracks.GetIfLoaded(rest[0])
-		if track == nil {
-			core.SendError(sender, "Track "+rest[0]+" does not exist.")
-			return 0
-		}
-		var contexts core.ContextSet
-		filterCtx := len(rest) > 1
-		if filterCtx {
-			contexts = core.ParseContextSet(rest[1:])
-		}
-		removed := h.holder.ClearNodes(core.DataNormal, func(n core.Node) bool {
-			return n.Type == core.NodeTypeInheritance && track.ContainsGroup(n.GroupName) && (!filterCtx || n.Contexts.Equal(contexts))
-		})
-		if h.isUser() {
-			h.user.GiveDefaultIfNeeded()
-		}
-		if err := h.save(); err != nil {
-			core.SendError(sender, "Failed to save data: "+err.Error())
-			return 0
-		}
-		h.log(m, sender, fmt.Sprintf("parent cleartrack %s%s", track.Name(), describeContextSuffix(contexts)))
-		core.SendInfo(sender, fmt.Sprintf("Cleared %d parent group(s) on track %s for %s%s.", removed, track.Name(), h.display, describeContextSuffix(contexts)))
-		return 1
-
+		return m.cmdHolderParentCleartrack(sender, label, h, rest)
 	case "switchprimarygroup":
-		if !h.isUser() {
-			core.SendError(sender, "Only users have a primary group.")
-			return 0
-		}
-		if !m.requirePerm(sender, core.PermUserParentSwitchPrimary) || !h.checkModify(m, sender) {
-			return 0
-		}
-		if len(rest) < 1 {
-			core.SendError(sender, fmt.Sprintf("Usage: /%s user %s parent switchprimarygroup <group>", label, h.display))
-			return 0
-		}
-		groupName := strings.ToLower(rest[0])
-		if m.lp.Groups.GetIfLoaded(groupName) == nil {
-			core.SendError(sender, "Group "+groupName+" does not exist.")
-			return 0
-		}
-		if strings.EqualFold(h.user.StoredPrimaryGroup(), groupName) {
-			core.SendError(sender, fmt.Sprintf("%s already has %s set as their primary group.", h.display, groupName))
-			return 0
-		}
-		// Ensure the user inherits the group.
-		h.user.SetNode(core.DataNormal, core.NewInheritanceNode(groupName))
-		h.user.SetStoredPrimaryGroup(groupName)
-		if err := h.save(); err != nil {
-			core.SendError(sender, "Failed to save data: "+err.Error())
-			return 0
-		}
-		h.log(m, sender, "parent switchprimarygroup "+groupName)
-		core.SendInfo(sender, fmt.Sprintf("%s's primary group was changed to %s.", h.display, groupName))
-		return 1
-
+		return m.cmdHolderParentSwitchprimarygroup(sender, label, h, rest)
 	default:
 		core.SendError(sender, "Unknown parent subcommand: "+sub)
 		return 0
 	}
+}
+
+func (m *Manager) cmdHolderParentInfo(sender plugin.CommandSender, label string, h *holderTarget, rest []string) int {
+	if !m.requirePerm(sender, h.perm(core.PermUserParentInfo, core.PermGroupParentInfo)) {
+		return 0
+	}
+	page := parsePage(rest, 0)
+	var nodes []core.Node
+	for _, n := range h.holder.NormalNodes() {
+		if n.Type == core.NodeTypeInheritance {
+			nodes = append(nodes, n)
+		}
+	}
+	slices.SortStableFunc(nodes, core.CompareNodes)
+	slice, curPage, totalPages := paginate(nodes, page, 8)
+	core.SendPrefixed(sender,
+		plugin.Plain(h.display).Color("aqua"),
+		plugin.Plain("'s Parent Groups: ").Color("green"),
+		plugin.Plain(fmt.Sprintf("(page %d of %d - %d entries)", curPage, totalPages, len(nodes))).Color("gray"),
+	)
+	if len(slice) == 0 {
+		sender.SendMessage(plugin.Plain("  None").Color("gray"))
+		return 1
+	}
+	for _, n := range slice {
+		line := plugin.Plain("> ").Color("dark_aqua").Append(
+			plugin.Plain(n.GroupName).Color("aqua"),
+			core.FormatContexts(n.Contexts),
+		)
+		if n.HasExpiry() {
+			line = line.Append(plugin.Plain(" [expires in " + core.FormatDuration(time.Until(n.Expiry)) + "]").Color("yellow"))
+		}
+		sender.SendMessage(line)
+	}
+	return 1
+}
+
+func (m *Manager) cmdHolderParentAdd(sender plugin.CommandSender, label string, h *holderTarget, rest []string) int {
+	if !m.requirePerm(sender, h.perm(core.PermUserParentAdd, core.PermGroupParentAdd)) || !h.checkModify(m, sender) {
+		return 0
+	}
+	if len(rest) < 1 {
+		core.SendError(sender, fmt.Sprintf("Usage: /%s %s %s parent add <group> [context...]", label, h.holder.Type(), h.display))
+		return 0
+	}
+	groupName := strings.ToLower(rest[0])
+	if m.lp.Groups.GetIfLoaded(groupName) == nil {
+		core.SendError(sender, "Group "+groupName+" does not exist.")
+		return 0
+	}
+	if !m.lp.CheckModifyGroupPermission(sender, groupName, "parent.add") {
+		core.SendError(sender, "You do not have permission to add parent group "+groupName+".")
+		return 0
+	}
+	if !h.isUser() && h.group.Name() == groupName {
+		core.SendError(sender, "A group cannot inherit from itself.")
+		return 0
+	}
+	contexts := parseContextsOrDefault(m.lp, rest[1:])
+	node := core.NewInheritanceNode(groupName).WithContexts(contexts)
+	if res := h.holder.SetNode(core.DataNormal, node); !res.WasSuccessful() {
+		core.SendError(sender, fmt.Sprintf("%s already inherits from %s%s.", h.display, groupName, describeContextSuffix(contexts)))
+		return 0
+	}
+	if err := h.save(); err != nil {
+		core.SendError(sender, "Failed to save data: "+err.Error())
+		return 0
+	}
+	h.log(m, sender, fmt.Sprintf("parent add %s%s", groupName, describeContextSuffix(contexts)))
+	core.SendInfo(sender, fmt.Sprintf("%s now inherits permissions from %s%s.", h.display, groupName, describeContextSuffix(contexts)))
+	return 1
+}
+
+func (m *Manager) cmdHolderParentSet(sender plugin.CommandSender, label string, h *holderTarget, rest []string) int {
+	if !m.requirePerm(sender, h.perm(core.PermUserParentSet, core.PermGroupParentSet)) || !h.checkModify(m, sender) {
+		return 0
+	}
+	if len(rest) < 1 {
+		core.SendError(sender, fmt.Sprintf("Usage: /%s %s %s parent set <group> [context...]", label, h.holder.Type(), h.display))
+		return 0
+	}
+	groupName := strings.ToLower(rest[0])
+	if m.lp.Groups.GetIfLoaded(groupName) == nil {
+		core.SendError(sender, "Group "+groupName+" does not exist.")
+		return 0
+	}
+	if !m.lp.CheckModifyGroupPermission(sender, groupName, "parent.set") {
+		core.SendError(sender, "You do not have permission to set parent group "+groupName+".")
+		return 0
+	}
+	if !h.isUser() && h.group.Name() == groupName {
+		core.SendError(sender, "A group cannot inherit from itself.")
+		return 0
+	}
+	contexts := parseContextsOrDefault(m.lp, rest[1:])
+	h.holder.ClearNodes(core.DataNormal, func(n core.Node) bool {
+		return n.Type == core.NodeTypeInheritance && n.Contexts.Equal(contexts)
+	})
+	h.holder.SetNode(core.DataNormal, core.NewInheritanceNode(groupName).WithContexts(contexts))
+	if h.isUser() && contexts.IsEmpty() {
+		h.user.SetStoredPrimaryGroup(groupName)
+	}
+	if err := h.save(); err != nil {
+		core.SendError(sender, "Failed to save data: "+err.Error())
+		return 0
+	}
+	h.log(m, sender, fmt.Sprintf("parent set %s%s", groupName, describeContextSuffix(contexts)))
+	core.SendInfo(sender, fmt.Sprintf("%s had their existing parent groups cleared, and now only inherits %s%s.", h.display, groupName, describeContextSuffix(contexts)))
+	return 1
+}
+
+func (m *Manager) cmdHolderParentRemove(sender plugin.CommandSender, label string, h *holderTarget, rest []string) int {
+	if !m.requirePerm(sender, h.perm(core.PermUserParentRemove, core.PermGroupParentRemove)) || !h.checkModify(m, sender) {
+		return 0
+	}
+	if len(rest) < 1 {
+		core.SendError(sender, fmt.Sprintf("Usage: /%s %s %s parent remove <group> [context...]", label, h.holder.Type(), h.display))
+		return 0
+	}
+	groupName := strings.ToLower(rest[0])
+	contexts := parseContextsOrDefault(m.lp, rest[1:])
+	if h.isUser() && contexts.IsEmpty() && m.lp.Config().PreventPrimaryGroupRemoval && strings.EqualFold(h.user.StoredPrimaryGroup(), groupName) {
+		core.SendError(sender, fmt.Sprintf("Cannot remove %s's primary group %s.", h.display, groupName))
+		return 0
+	}
+	node := core.NewInheritanceNode(groupName).WithContexts(contexts)
+	if res := h.holder.UnsetNode(core.DataNormal, node); !res.WasSuccessful() {
+		core.SendError(sender, fmt.Sprintf("%s does not inherit from %s%s.", h.display, groupName, describeContextSuffix(contexts)))
+		return 0
+	}
+	if h.isUser() {
+		h.user.GiveDefaultIfNeeded()
+		if contexts.IsEmpty() && strings.EqualFold(h.user.StoredPrimaryGroup(), groupName) {
+			h.user.SetStoredPrimaryGroup(core.DefaultGroupName)
+		}
+	}
+	if err := h.save(); err != nil {
+		core.SendError(sender, "Failed to save data: "+err.Error())
+		return 0
+	}
+	h.log(m, sender, fmt.Sprintf("parent remove %s%s", groupName, describeContextSuffix(contexts)))
+	core.SendInfo(sender, fmt.Sprintf("%s no longer inherits permissions from %s%s.", h.display, groupName, describeContextSuffix(contexts)))
+	return 1
+}
+
+func (m *Manager) cmdHolderParentAddtemp(sender plugin.CommandSender, label string, h *holderTarget, rest []string) int {
+	if !m.requirePerm(sender, h.perm(core.PermUserParentAddTemp, core.PermGroupParentAddTemp)) || !h.checkModify(m, sender) {
+		return 0
+	}
+	if len(rest) < 2 {
+		core.SendError(sender, fmt.Sprintf("Usage: /%s %s %s parent addtemp <group> <duration> [accumulate|replace|deny] [context...]", label, h.holder.Type(), h.display))
+		return 0
+	}
+	groupName := strings.ToLower(rest[0])
+	if m.lp.Groups.GetIfLoaded(groupName) == nil {
+		core.SendError(sender, "Group "+groupName+" does not exist.")
+		return 0
+	}
+	dur, err := core.ParseDuration(rest[1])
+	if err != nil {
+		core.SendError(sender, "Invalid duration: "+rest[1])
+		return 0
+	}
+	idx := 2
+	strategy := m.lp.Config().TemporaryAddBehaviour
+	if idx < len(rest) {
+		if mod, ok := parseTempModifier(rest[idx]); ok {
+			strategy = mod
+			idx++
+		}
+	}
+	contexts := parseContextsOrDefault(m.lp, rest[idx:])
+	node := core.NewInheritanceNode(groupName).WithExpiry(time.Now().Add(dur)).WithContexts(contexts)
+	stored, res := h.holder.SetNodeTemp(core.DataNormal, node, strategy)
+	if !res.WasSuccessful() {
+		core.SendError(sender, fmt.Sprintf("%s already temporarily inherits from %s%s.", h.display, groupName, describeContextSuffix(contexts)))
+		return 0
+	}
+	if err := h.save(); err != nil {
+		core.SendError(sender, "Failed to save data: "+err.Error())
+		return 0
+	}
+	remStr := core.FormatDuration(time.Until(stored.Expiry))
+	h.log(m, sender, fmt.Sprintf("parent addtemp %s %s%s", groupName, remStr, describeContextSuffix(contexts)))
+	core.SendInfo(sender, fmt.Sprintf("%s now inherits permissions from %s for a duration of %s%s.", h.display, groupName, remStr, describeContextSuffix(contexts)))
+	return 1
+}
+
+func (m *Manager) cmdHolderParentRemovetemp(sender plugin.CommandSender, label string, h *holderTarget, rest []string) int {
+	if !m.requirePerm(sender, h.perm(core.PermUserParentRemoveTemp, core.PermGroupParentRemoveTemp)) || !h.checkModify(m, sender) {
+		return 0
+	}
+	if len(rest) < 1 {
+		core.SendError(sender, fmt.Sprintf("Usage: /%s %s %s parent removetemp <group> [duration] [context...]", label, h.holder.Type(), h.display))
+		return 0
+	}
+	groupName := strings.ToLower(rest[0])
+	idx := 1
+	var subtract time.Duration
+	if idx < len(rest) {
+		if d, err := core.ParseDuration(rest[idx]); err == nil {
+			subtract = d
+			idx++
+		}
+	}
+	contexts := parseContextsOrDefault(m.lp, rest[idx:])
+	node := core.NewInheritanceNode(groupName).WithContexts(contexts)
+	updated, removed, res := h.holder.UnsetNodeTemp(core.DataNormal, node, subtract)
+	if !res.WasSuccessful() {
+		core.SendError(sender, fmt.Sprintf("%s does not temporarily inherit from %s%s.", h.display, groupName, describeContextSuffix(contexts)))
+		return 0
+	}
+	if err := h.save(); err != nil {
+		core.SendError(sender, "Failed to save data: "+err.Error())
+		return 0
+	}
+	if removed {
+		h.log(m, sender, fmt.Sprintf("parent removetemp %s%s", groupName, describeContextSuffix(contexts)))
+		core.SendInfo(sender, fmt.Sprintf("Removed temporary parent %s from %s%s.", groupName, h.display, describeContextSuffix(contexts)))
+	} else {
+		h.log(m, sender, fmt.Sprintf("parent removetemp %s %s%s", groupName, core.FormatDuration(subtract), describeContextSuffix(contexts)))
+		core.SendInfo(sender, fmt.Sprintf("Subtracted %s from temporary parent %s for %s (%s remaining)%s.", core.FormatDuration(subtract), groupName, h.display, core.FormatDuration(time.Until(updated.Expiry)), describeContextSuffix(contexts)))
+	}
+	return 1
+}
+
+func (m *Manager) cmdHolderParentSettrack(sender plugin.CommandSender, label string, h *holderTarget, rest []string) int {
+	if !m.requirePerm(sender, h.perm(core.PermUserParentSetTrack, core.PermGroupParentSetTrack)) || !h.checkModify(m, sender) {
+		return 0
+	}
+	if len(rest) < 2 {
+		core.SendError(sender, fmt.Sprintf("Usage: /%s %s %s parent settrack <track> <group|index> [context...]", label, h.holder.Type(), h.display))
+		return 0
+	}
+	track := m.lp.Tracks.GetIfLoaded(rest[0])
+	if track == nil {
+		core.SendError(sender, "Track "+rest[0]+" does not exist.")
+		return 0
+	}
+	groupName := strings.ToLower(rest[1])
+	if idx, err := strconv.Atoi(groupName); err == nil {
+		gs := track.Groups()
+		if idx < 1 || idx > len(gs) {
+			core.SendError(sender, fmt.Sprintf("Track %s has %d groups.", track.Name(), len(gs)))
+			return 0
+		}
+		groupName = gs[idx-1]
+	}
+	if !track.ContainsGroup(groupName) {
+		core.SendError(sender, fmt.Sprintf("Track %s does not contain group %s.", track.Name(), groupName))
+		return 0
+	}
+	if m.lp.Groups.GetIfLoaded(groupName) == nil {
+		core.SendError(sender, "Group "+groupName+" does not exist.")
+		return 0
+	}
+	contexts := parseContextsOrDefault(m.lp, rest[2:])
+	h.holder.ClearNodes(core.DataNormal, func(n core.Node) bool {
+		return n.Type == core.NodeTypeInheritance && n.Contexts.Equal(contexts) && track.ContainsGroup(n.GroupName)
+	})
+	h.holder.SetNode(core.DataNormal, core.NewInheritanceNode(groupName).WithContexts(contexts))
+	if err := h.save(); err != nil {
+		core.SendError(sender, "Failed to save data: "+err.Error())
+		return 0
+	}
+	h.log(m, sender, fmt.Sprintf("parent settrack %s %s%s", track.Name(), groupName, describeContextSuffix(contexts)))
+	core.SendInfo(sender, fmt.Sprintf("Set %s to group %s on track %s%s.", h.display, groupName, track.Name(), describeContextSuffix(contexts)))
+	return 1
+}
+
+func (m *Manager) cmdHolderParentClear(sender plugin.CommandSender, label string, h *holderTarget, rest []string) int {
+	if !m.requirePerm(sender, h.perm(core.PermUserParentClear, core.PermGroupParentClear)) || !h.checkModify(m, sender) {
+		return 0
+	}
+	var contexts core.ContextSet
+	filterCtx := len(rest) > 0
+	if filterCtx {
+		contexts = core.ParseContextSet(rest)
+	}
+	removed := h.holder.ClearNodes(core.DataNormal, func(n core.Node) bool {
+		return n.Type == core.NodeTypeInheritance && (!filterCtx || n.Contexts.Equal(contexts))
+	})
+	if h.isUser() {
+		h.user.GiveDefaultIfNeeded()
+		if !filterCtx || contexts.IsEmpty() {
+			h.user.SetStoredPrimaryGroup(core.DefaultGroupName)
+		}
+	}
+	if err := h.save(); err != nil {
+		core.SendError(sender, "Failed to save data: "+err.Error())
+		return 0
+	}
+	h.log(m, sender, fmt.Sprintf("parent clear%s", describeContextSuffix(contexts)))
+	core.SendInfo(sender, fmt.Sprintf("Cleared %d parent group(s) for %s%s.", removed, h.display, describeContextSuffix(contexts)))
+	return 1
+}
+
+func (m *Manager) cmdHolderParentCleartrack(sender plugin.CommandSender, label string, h *holderTarget, rest []string) int {
+	if !m.requirePerm(sender, h.perm(core.PermUserParentClearTrack, core.PermGroupParentClearTrack)) || !h.checkModify(m, sender) {
+		return 0
+	}
+	if len(rest) < 1 {
+		core.SendError(sender, fmt.Sprintf("Usage: /%s %s %s parent cleartrack <track> [context...]", label, h.holder.Type(), h.display))
+		return 0
+	}
+	track := m.lp.Tracks.GetIfLoaded(rest[0])
+	if track == nil {
+		core.SendError(sender, "Track "+rest[0]+" does not exist.")
+		return 0
+	}
+	var contexts core.ContextSet
+	filterCtx := len(rest) > 1
+	if filterCtx {
+		contexts = core.ParseContextSet(rest[1:])
+	}
+	removed := h.holder.ClearNodes(core.DataNormal, func(n core.Node) bool {
+		return n.Type == core.NodeTypeInheritance && track.ContainsGroup(n.GroupName) && (!filterCtx || n.Contexts.Equal(contexts))
+	})
+	if h.isUser() {
+		h.user.GiveDefaultIfNeeded()
+	}
+	if err := h.save(); err != nil {
+		core.SendError(sender, "Failed to save data: "+err.Error())
+		return 0
+	}
+	h.log(m, sender, fmt.Sprintf("parent cleartrack %s%s", track.Name(), describeContextSuffix(contexts)))
+	core.SendInfo(sender, fmt.Sprintf("Cleared %d parent group(s) on track %s for %s%s.", removed, track.Name(), h.display, describeContextSuffix(contexts)))
+	return 1
+}
+
+func (m *Manager) cmdHolderParentSwitchprimarygroup(sender plugin.CommandSender, label string, h *holderTarget, rest []string) int {
+	if !h.isUser() {
+		core.SendError(sender, "Only users have a primary group.")
+		return 0
+	}
+	if !m.requirePerm(sender, core.PermUserParentSwitchPrimary) || !h.checkModify(m, sender) {
+		return 0
+	}
+	if len(rest) < 1 {
+		core.SendError(sender, fmt.Sprintf("Usage: /%s user %s parent switchprimarygroup <group>", label, h.display))
+		return 0
+	}
+	groupName := strings.ToLower(rest[0])
+	if m.lp.Groups.GetIfLoaded(groupName) == nil {
+		core.SendError(sender, "Group "+groupName+" does not exist.")
+		return 0
+	}
+	if strings.EqualFold(h.user.StoredPrimaryGroup(), groupName) {
+		core.SendError(sender, fmt.Sprintf("%s already has %s set as their primary group.", h.display, groupName))
+		return 0
+	}
+	// Ensure the user inherits the group.
+	h.user.SetNode(core.DataNormal, core.NewInheritanceNode(groupName))
+	h.user.SetStoredPrimaryGroup(groupName)
+	if err := h.save(); err != nil {
+		core.SendError(sender, "Failed to save data: "+err.Error())
+		return 0
+	}
+	h.log(m, sender, "parent switchprimarygroup "+groupName)
+	core.SendInfo(sender, fmt.Sprintf("%s's primary group was changed to %s.", h.display, groupName))
+	return 1
 }
 
 // --- Meta subcommands ---
