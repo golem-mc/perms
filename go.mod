@@ -25,7 +25,7 @@ require (
 	github.com/klauspost/compress v1.20.4 // indirect
 	github.com/magiconair/properties v1.18.13 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
-	github.com/nats-io/nkeys v0.4.16 // indirect
+	github.com/nats-io/nkeys v0.4.17 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.33 // indirect
