@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -96,9 +97,7 @@ func (tm *TranslationManager) Reload() {
 			if loaded[loc] == nil {
 				loaded[loc] = props
 			} else {
-				for k, v := range props {
-					loaded[loc][k] = v
-				}
+				maps.Copy(loaded[loc], props)
 			}
 		}
 	}

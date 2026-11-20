@@ -392,10 +392,10 @@ func (lp *LuckPerms) openBytesocksSocket(sender plugin.CommandSender, cmdLabel s
 	}
 
 	wsURL := base + channelID
-	if strings.HasPrefix(wsURL, "https://") {
-		wsURL = "wss://" + strings.TrimPrefix(wsURL, "https://")
-	} else if strings.HasPrefix(wsURL, "http://") {
-		wsURL = "ws://" + strings.TrimPrefix(wsURL, "http://")
+	if after, ok := strings.CutPrefix(wsURL, "https://"); ok {
+		wsURL = "wss://" + after
+	} else if after, ok := strings.CutPrefix(wsURL, "http://"); ok {
+		wsURL = "ws://" + after
 	}
 	headers := http.Header{"User-Agent": {lp.Bytebin.UserAgent}}
 	dialer := websocket.Dialer{HandshakeTimeout: 5 * time.Second}

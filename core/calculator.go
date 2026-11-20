@@ -543,10 +543,10 @@ func (ms *metaStack) result() StringResult {
 	case DuplicateLastOnly:
 		seen := make(map[string]struct{}, len(parts))
 		var rev []string
-		for i := len(parts) - 1; i >= 0; i-- {
-			if _, ok := seen[parts[i]]; !ok {
-				seen[parts[i]] = struct{}{}
-				rev = append(rev, parts[i])
+		for _, part := range slices.Backward(parts) {
+			if _, ok := seen[part]; !ok {
+				seen[part] = struct{}{}
+				rev = append(rev, part)
 			}
 		}
 		slices.Reverse(rev)

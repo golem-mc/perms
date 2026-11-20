@@ -53,7 +53,7 @@ func (env *Env) Join(name string, op bool) *Client {
 // Run executes a slash command (without leading '/') as c and returns received messages.
 func (env *Env) Run(c *Client, line string) []string {
 	env.T.Helper()
-	c.Player.Run("/" + line)
+	c.Run("/" + line)
 	return c.Messages(5)
 }
 

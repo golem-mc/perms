@@ -18,7 +18,7 @@ type whoami struct{}
 func init() { plugin.Register("whoami", whoami{}) }
 
 func (whoami) Enable(s plugin.Server) error {
-	return s.Commands().Register(plugin.Command{Name: "whoami", Node: plugin.Node{Run: func(ctx *plugin.CommandContext) (int, error) {
+	return s.Commands().Register(plugin.Command{Name: "whoami", Run: func(ctx *plugin.CommandContext) (int, error) {
 		p := ctx.Sender.(plugin.Player)
 		perm, ok1 := vault.LookupPermission(s)
 		chat, ok2 := vault.LookupChat(s)
@@ -30,7 +30,7 @@ func (whoami) Enable(s plugin.Server) error {
 		p.SendMessage(plugin.Plain(fmt.Sprintf("%s%s%s in %s, may fly: %v, homes: %d", chat.PlayerPrefix(w, id), p.Name(), chat.PlayerSuffix(w, id),
 			perm.PrimaryGroup(w, id), perm.PlayerHas(w, id, "demo.fly"), vault.PlayerInfoOr(chat, w, id, "home-limit", 1))))
 		return 1, nil
-	}}})
+	}})
 }
 
 func (whoami) Disable() {}

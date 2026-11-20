@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -510,160 +511,7 @@ func ParseConfigBytes(data []byte) (*Config, error) {
 	if raw.StorageMethod != nil {
 		cfg.StorageMethod = strings.ToLower(strings.TrimSpace(*raw.StorageMethod))
 	}
-	if raw.Data != nil {
-		if raw.Data.Address != nil {
-			cfg.Data.Address = strings.TrimSpace(*raw.Data.Address)
-		}
-		if raw.Data.Database != nil {
-			cfg.Data.Database = strings.TrimSpace(*raw.Data.Database)
-		}
-		if raw.Data.Username != nil {
-			cfg.Data.Username = *raw.Data.Username
-		}
-		if raw.Data.Password != nil {
-			cfg.Data.Password = *raw.Data.Password
-		}
-		if raw.Data.TablePrefix != nil {
-			cfg.Data.TablePrefix = *raw.Data.TablePrefix
-		}
-		if raw.Data.MongoCollectionPrefix != nil {
-			cfg.Data.MongoCollectionPrefix = *raw.Data.MongoCollectionPrefix
-		}
-		if raw.Data.MongoConnectionURI != nil {
-			cfg.Data.MongoConnectionURI = strings.TrimSpace(*raw.Data.MongoConnectionURI)
-		}
-		if ps := raw.Data.PoolSettings; ps != nil {
-			if ps.MaxPoolSize != nil && *ps.MaxPoolSize > 0 {
-				cfg.Data.MaxPoolSize = *ps.MaxPoolSize
-			}
-			if ps.MinIdle != nil && *ps.MinIdle >= 0 {
-				cfg.Data.MinIdle = *ps.MinIdle
-			}
-			if ps.MaxLifetime != nil && *ps.MaxLifetime > 0 {
-				cfg.Data.MaxLifetimeMillis = *ps.MaxLifetime
-			}
-			if ps.ConnectionTimeout != nil && *ps.ConnectionTimeout > 0 {
-				cfg.Data.ConnectionTimeoutMs = *ps.ConnectionTimeout
-			}
-			for k, v := range ps.Properties {
-				cfg.Data.Properties[k] = v
-			}
-		}
-	}
-	if raw.SplitStorage != nil {
-		if raw.SplitStorage.Enabled != nil {
-			cfg.SplitStorage.Enabled = *raw.SplitStorage.Enabled
-		}
-		if m := raw.SplitStorage.Methods; m != nil {
-			if m.User != nil {
-				cfg.SplitStorage.User = strings.ToLower(strings.TrimSpace(*m.User))
-			}
-			if m.Group != nil {
-				cfg.SplitStorage.Group = strings.ToLower(strings.TrimSpace(*m.Group))
-			}
-			if m.Track != nil {
-				cfg.SplitStorage.Track = strings.ToLower(strings.TrimSpace(*m.Track))
-			}
-			if m.UUID != nil {
-				cfg.SplitStorage.UUID = strings.ToLower(strings.TrimSpace(*m.UUID))
-			}
-			if m.Log != nil {
-				cfg.SplitStorage.Log = strings.ToLower(strings.TrimSpace(*m.Log))
-			}
-		}
-	}
-	if raw.SyncMinutes != nil {
-		cfg.SyncMinutes = *raw.SyncMinutes
-	}
-	if raw.WatchFiles != nil {
-		cfg.WatchFiles = *raw.WatchFiles
-	}
-	if raw.MessagingService != nil {
-		cfg.MessagingService = strings.ToLower(strings.TrimSpace(*raw.MessagingService))
-	}
-	if raw.AutoPushUpdates != nil {
-		cfg.AutoPushUpdates = *raw.AutoPushUpdates
-	}
-	if raw.PushLogEntries != nil {
-		cfg.PushLogEntries = *raw.PushLogEntries
-	}
-	if raw.BroadcastReceivedLogEntries != nil {
-		cfg.BroadcastReceivedLogEntries = *raw.BroadcastReceivedLogEntries
-	}
-	if raw.Redis != nil {
-		if raw.Redis.Enabled != nil {
-			cfg.Redis.Enabled = *raw.Redis.Enabled
-		}
-		if raw.Redis.Address != nil {
-			cfg.Redis.Address = strings.TrimSpace(*raw.Redis.Address)
-		}
-		if len(raw.Redis.Addresses) > 0 {
-			cfg.Redis.Addresses = slices.Clone(raw.Redis.Addresses)
-		}
-		if raw.Redis.Username != nil {
-			cfg.Redis.Username = *raw.Redis.Username
-		}
-		if raw.Redis.Password != nil {
-			cfg.Redis.Password = *raw.Redis.Password
-		}
-		if raw.Redis.SSL != nil {
-			cfg.Redis.SSL = *raw.Redis.SSL
-		}
-		if s := raw.Redis.Sentinel; s != nil {
-			if s.Enabled != nil {
-				cfg.Redis.SentinelEnabled = *s.Enabled
-			}
-			if s.Master != nil {
-				cfg.Redis.SentinelMaster = *s.Master
-			}
-			if len(s.Addresses) > 0 {
-				cfg.Redis.SentinelAddrs = slices.Clone(s.Addresses)
-			}
-			if s.Username != nil {
-				cfg.Redis.SentinelUsername = *s.Username
-			}
-			if s.Password != nil {
-				cfg.Redis.SentinelPassword = *s.Password
-			}
-		}
-	}
-	if raw.Nats != nil {
-		if raw.Nats.Enabled != nil {
-			cfg.Nats.Enabled = *raw.Nats.Enabled
-		}
-		if raw.Nats.Address != nil {
-			cfg.Nats.Address = strings.TrimSpace(*raw.Nats.Address)
-		}
-		if raw.Nats.Username != nil {
-			cfg.Nats.Username = *raw.Nats.Username
-		}
-		if raw.Nats.Password != nil {
-			cfg.Nats.Password = *raw.Nats.Password
-		}
-		if raw.Nats.Token != nil {
-			cfg.Nats.Token = *raw.Nats.Token
-		}
-		if raw.Nats.SSL != nil {
-			cfg.Nats.SSL = *raw.Nats.SSL
-		}
-	}
-	if raw.RabbitMQ != nil {
-		if raw.RabbitMQ.Enabled != nil {
-			cfg.RabbitMQ.Enabled = *raw.RabbitMQ.Enabled
-		}
-		if raw.RabbitMQ.Address != nil {
-			cfg.RabbitMQ.Address = strings.TrimSpace(*raw.RabbitMQ.Address)
-		}
-		if raw.RabbitMQ.VHost != nil {
-			cfg.RabbitMQ.VHost = *raw.RabbitMQ.VHost
-		}
-		if raw.RabbitMQ.Username != nil {
-			cfg.RabbitMQ.Username = *raw.RabbitMQ.Username
-		}
-		if raw.RabbitMQ.Password != nil {
-			cfg.RabbitMQ.Password = *raw.RabbitMQ.Password
-		}
-	}
+	cfg.applyRawStorage(&raw)
 	if raw.TemporaryAddBehaviour != nil {
 		switch strings.ToLower(strings.TrimSpace(*raw.TemporaryAddBehaviour)) {
 		case "accumulate":
@@ -900,5 +748,161 @@ func parseMetaSel(s string) MetaValueSelection {
 func setIf[T any](dst *T, v *T) {
 	if v != nil {
 		*dst = *v
+	}
+}
+
+// applyRawStorage applies the storage, messaging and broker sections of a parsed config.
+func (cfg *Config) applyRawStorage(raw *rawConfig) {
+	if raw.Data != nil {
+		if raw.Data.Address != nil {
+			cfg.Data.Address = strings.TrimSpace(*raw.Data.Address)
+		}
+		if raw.Data.Database != nil {
+			cfg.Data.Database = strings.TrimSpace(*raw.Data.Database)
+		}
+		if raw.Data.Username != nil {
+			cfg.Data.Username = *raw.Data.Username
+		}
+		if raw.Data.Password != nil {
+			cfg.Data.Password = *raw.Data.Password
+		}
+		if raw.Data.TablePrefix != nil {
+			cfg.Data.TablePrefix = *raw.Data.TablePrefix
+		}
+		if raw.Data.MongoCollectionPrefix != nil {
+			cfg.Data.MongoCollectionPrefix = *raw.Data.MongoCollectionPrefix
+		}
+		if raw.Data.MongoConnectionURI != nil {
+			cfg.Data.MongoConnectionURI = strings.TrimSpace(*raw.Data.MongoConnectionURI)
+		}
+		if ps := raw.Data.PoolSettings; ps != nil {
+			if ps.MaxPoolSize != nil && *ps.MaxPoolSize > 0 {
+				cfg.Data.MaxPoolSize = *ps.MaxPoolSize
+			}
+			if ps.MinIdle != nil && *ps.MinIdle >= 0 {
+				cfg.Data.MinIdle = *ps.MinIdle
+			}
+			if ps.MaxLifetime != nil && *ps.MaxLifetime > 0 {
+				cfg.Data.MaxLifetimeMillis = *ps.MaxLifetime
+			}
+			if ps.ConnectionTimeout != nil && *ps.ConnectionTimeout > 0 {
+				cfg.Data.ConnectionTimeoutMs = *ps.ConnectionTimeout
+			}
+			maps.Copy(cfg.Data.Properties, ps.Properties)
+		}
+	}
+	if raw.SplitStorage != nil {
+		if raw.SplitStorage.Enabled != nil {
+			cfg.SplitStorage.Enabled = *raw.SplitStorage.Enabled
+		}
+		if m := raw.SplitStorage.Methods; m != nil {
+			if m.User != nil {
+				cfg.SplitStorage.User = strings.ToLower(strings.TrimSpace(*m.User))
+			}
+			if m.Group != nil {
+				cfg.SplitStorage.Group = strings.ToLower(strings.TrimSpace(*m.Group))
+			}
+			if m.Track != nil {
+				cfg.SplitStorage.Track = strings.ToLower(strings.TrimSpace(*m.Track))
+			}
+			if m.UUID != nil {
+				cfg.SplitStorage.UUID = strings.ToLower(strings.TrimSpace(*m.UUID))
+			}
+			if m.Log != nil {
+				cfg.SplitStorage.Log = strings.ToLower(strings.TrimSpace(*m.Log))
+			}
+		}
+	}
+	if raw.SyncMinutes != nil {
+		cfg.SyncMinutes = *raw.SyncMinutes
+	}
+	if raw.WatchFiles != nil {
+		cfg.WatchFiles = *raw.WatchFiles
+	}
+	if raw.MessagingService != nil {
+		cfg.MessagingService = strings.ToLower(strings.TrimSpace(*raw.MessagingService))
+	}
+	if raw.AutoPushUpdates != nil {
+		cfg.AutoPushUpdates = *raw.AutoPushUpdates
+	}
+	if raw.PushLogEntries != nil {
+		cfg.PushLogEntries = *raw.PushLogEntries
+	}
+	if raw.BroadcastReceivedLogEntries != nil {
+		cfg.BroadcastReceivedLogEntries = *raw.BroadcastReceivedLogEntries
+	}
+	if raw.Redis != nil {
+		if raw.Redis.Enabled != nil {
+			cfg.Redis.Enabled = *raw.Redis.Enabled
+		}
+		if raw.Redis.Address != nil {
+			cfg.Redis.Address = strings.TrimSpace(*raw.Redis.Address)
+		}
+		if len(raw.Redis.Addresses) > 0 {
+			cfg.Redis.Addresses = slices.Clone(raw.Redis.Addresses)
+		}
+		if raw.Redis.Username != nil {
+			cfg.Redis.Username = *raw.Redis.Username
+		}
+		if raw.Redis.Password != nil {
+			cfg.Redis.Password = *raw.Redis.Password
+		}
+		if raw.Redis.SSL != nil {
+			cfg.Redis.SSL = *raw.Redis.SSL
+		}
+		if s := raw.Redis.Sentinel; s != nil {
+			if s.Enabled != nil {
+				cfg.Redis.SentinelEnabled = *s.Enabled
+			}
+			if s.Master != nil {
+				cfg.Redis.SentinelMaster = *s.Master
+			}
+			if len(s.Addresses) > 0 {
+				cfg.Redis.SentinelAddrs = slices.Clone(s.Addresses)
+			}
+			if s.Username != nil {
+				cfg.Redis.SentinelUsername = *s.Username
+			}
+			if s.Password != nil {
+				cfg.Redis.SentinelPassword = *s.Password
+			}
+		}
+	}
+	if raw.Nats != nil {
+		if raw.Nats.Enabled != nil {
+			cfg.Nats.Enabled = *raw.Nats.Enabled
+		}
+		if raw.Nats.Address != nil {
+			cfg.Nats.Address = strings.TrimSpace(*raw.Nats.Address)
+		}
+		if raw.Nats.Username != nil {
+			cfg.Nats.Username = *raw.Nats.Username
+		}
+		if raw.Nats.Password != nil {
+			cfg.Nats.Password = *raw.Nats.Password
+		}
+		if raw.Nats.Token != nil {
+			cfg.Nats.Token = *raw.Nats.Token
+		}
+		if raw.Nats.SSL != nil {
+			cfg.Nats.SSL = *raw.Nats.SSL
+		}
+	}
+	if raw.RabbitMQ != nil {
+		if raw.RabbitMQ.Enabled != nil {
+			cfg.RabbitMQ.Enabled = *raw.RabbitMQ.Enabled
+		}
+		if raw.RabbitMQ.Address != nil {
+			cfg.RabbitMQ.Address = strings.TrimSpace(*raw.RabbitMQ.Address)
+		}
+		if raw.RabbitMQ.VHost != nil {
+			cfg.RabbitMQ.VHost = *raw.RabbitMQ.VHost
+		}
+		if raw.RabbitMQ.Username != nil {
+			cfg.RabbitMQ.Username = *raw.RabbitMQ.Username
+		}
+		if raw.RabbitMQ.Password != nil {
+			cfg.RabbitMQ.Password = *raw.RabbitMQ.Password
+		}
 	}
 }

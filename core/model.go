@@ -107,10 +107,7 @@ func (m *NodeMap) AddTemp(node Node, strategy TemporaryNodeMergeStrategy) (Node,
 		if existing.Equal(node, EqualityIgnoreExpiry) {
 			switch strategy {
 			case TempMergeAccumulate:
-				rem := time.Until(node.Expiry)
-				if rem < 0 {
-					rem = 0
-				}
+				rem := max(time.Until(node.Expiry), 0)
 				merged := existing.WithExpiry(existing.Expiry.Add(rem))
 				m.nodes[i] = merged
 				return merged, MutateSuccess
@@ -456,7 +453,7 @@ func newUser(lp *LuckPerms, id plugin.UUID, username string) *User {
 		username:     username,
 		primaryGroup: DefaultGroupName,
 	}
-	u.PermissionHolder.init(lp, HolderUser, id.String())
+	u.init(lp, HolderUser, id.String())
 	return u
 }
 
@@ -587,7 +584,7 @@ type Group struct {
 
 func newGroup(lp *LuckPerms, name string) *Group {
 	g := &Group{}
-	g.PermissionHolder.init(lp, HolderGroup, strings.ToLower(name))
+	g.init(lp, HolderGroup, strings.ToLower(name))
 	return g
 }
 
