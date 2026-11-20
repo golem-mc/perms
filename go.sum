@@ -14,8 +14,10 @@ github.com/dustin/go-humanize v1.1.0 h1:dbKTrvD0klcbBV/h4AWJdMuZogJACoMlvWIWZ5b2
 github.com/dustin/go-humanize v1.1.0/go.mod h1:hc1CvRkJMsgxqjmjMQF3QNRAZBwY8AXBAzKYoSX9sFI=
 github.com/go-sql-driver/mysql v1.10.2 h1:5TRvGvczDohUMOCRA5aCAXgfSZOo/oNDSFD/2RrChS0=
 github.com/go-sql-driver/mysql v1.10.2/go.mod h1:M+cqaI7+xxXGG9swrdeUIoPG3Y3KCkF0pZej+SK+nWk=
-github.com/golem-mc/golem v0.0.0-20261119214906-056d502a7d33 h1:qKf+tEMj6AjIwXTqCQlHYh5dRYI90Wt51p4LCGLPDf4=
-github.com/golem-mc/golem v0.0.0-20261119214906-056d502a7d33/go.mod h1:oFlU6ijSdw7lNo/gxfCuANfYyklqkw5a9qGaUrbLcms=
+github.com/golem-mc/golem v0.0.0-20261120013137-4f95109e0ff6 h1:pnWE5aSlx4BgIoOo/Lv/rf+KhcGe0asZQwN4xkj1GA4=
+github.com/golem-mc/golem v0.0.0-20261120013137-4f95109e0ff6/go.mod h1:oFlU6ijSdw7lNo/gxfCuANfYyklqkw5a9qGaUrbLcms=
+github.com/golem-mc/vault v0.0.0-20261120033259-f75dd900f11e h1:XB45EqRoVDb2aiy6tt2mVuam35rYdwmDvuVKMy2zlfU=
+github.com/golem-mc/vault v0.0.0-20261120033259-f75dd900f11e/go.mod h1:QnYB++avAZBzSn+zq+QsL0CdhlqgahAFkkAj0UsXBe8=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
 github.com/google/pprof v0.0.0-20261016150608-1facf8f91b50 h1:PlNWJRxu5APSV0pWqfIsZ0qt9OOGHSWfZQ4zvx+WgWs=
