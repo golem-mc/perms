@@ -16,3 +16,7 @@ whitelist.json
 banned-ips.json
 banned-players.json
 usercache.json
+
+# Dev server runtime files (mise run dev)
+/dev/*
+!/dev/launcher.template.json

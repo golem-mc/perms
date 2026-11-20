@@ -1,2 +1,22 @@
 [tools]
 go = "1.27.4"
+
+# Writes dev/launcher.json, pinning the golem version go.mod requires.
+[tasks."dev:config"]
+description = "Write dev/launcher.json for the golem version in go.mod"
+run = """
+v=$(go list -m -f '{{ "{{" }}.Version{{ "}}" }}' github.com/golem-mc/golem)
+sed "s/@GOLEM@/$v/" dev/launcher.template.json > dev/launcher.json
+"""
+
+[tasks.dev]
+description = "Run a golem server with this checkout's plugin in dev/"
+depends = ["dev:config"]
+dir = "dev"
+run = "go tool launcher -- --nogui"
+
+[tasks."dev:check"]
+description = "Check that the server builds with this checkout's plugin"
+depends = ["dev:config"]
+dir = "dev"
+run = "go tool launcher check"
