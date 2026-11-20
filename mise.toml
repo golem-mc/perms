@@ -53,5 +53,25 @@ description = "Fail if go fix would change anything"
 run = "go fix -diff ./..."
 
 [tasks.check]
-description = "Everything a PR must pass: build, test, lint, format, fix and tidy checks"
-depends = ["build", "test", "lint", "fmt:check", "fix:check", "tidy:check"]
+description = "Everything a PR must pass: build, dev check, test, lint, format, fix and tidy checks"
+depends = ["build", "dev:check", "test", "lint", "fmt:check", "fix:check", "tidy:check"]
+
+# Writes dev/launcher.json, pinning the golem version go.mod requires.
+[tasks."dev:config"]
+description = "Write dev/launcher.json for the golem version in go.mod"
+run = """
+v=$(go list -m -f '{{ "{{" }}.Version{{ "}}" }}' github.com/golem-mc/golem)
+sed "s/@GOLEM@/$v/" dev/launcher.template.json > dev/launcher.json
+"""
+
+[tasks.dev]
+description = "Run a golem server with this checkout's plugin in dev/"
+depends = ["dev:config"]
+dir = "dev"
+run = "go tool launcher -- --nogui"
+
+[tasks."dev:check"]
+description = "Check that the server builds with this checkout's plugin"
+depends = ["dev:config"]
+dir = "dev"
+run = "go tool launcher check"

@@ -9,6 +9,7 @@ those versions (`mise tasks` lists them):
 ```bash
 mise install
 mise run build
+mise run dev                   # run a server with your checkout's plugin
 ```
 
 ## Before you open a pull request
@@ -20,6 +21,7 @@ mise run tidy        # go.mod and go.sum
 mise run build
 mise run lint        # golangci-lint
 mise run test:changed   # repeats the tests your branch adds or changes
+mise run dev:check         # the server builds with the plugin
 ```
 
 Run only the tests you add or change while working; CI runs the rest

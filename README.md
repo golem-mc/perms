@@ -60,41 +60,28 @@ Add the plugin with
 [`golem-launcher`](https://github.com/golem-mc/golem#installing-plugins):
 
 ```bash
-./golem-launcher plugin add github.com/golem-mc/perms@<version>
+./golem-launcher plugin add github.com/golem-mc/perms
 ./golem-launcher
-```
-
-`<version>` is a release tag (e.g. `v0.1.0`), or a commit hash while there
-are no releases. The launcher writes the plugin to `launcher.json`, which you
-can also edit by hand:
-
-```json
-{
-  "server": "<golem version>",
-  "plugins": [
-    "github.com/golem-mc/perms@<version>"
-  ]
-}
 ```
 
 The plugin needs golem at commit `4f95109` or newer. If your server is too
 old, the launcher says so and tells you how to update it.
 
-### As a ready-built server
+### Running from a checkout
 
-This repository also builds a standalone golem server with LuckPerms included.
-You need [Go](https://go.dev/dl/) 1.27.4 or newer, or
-[mise](https://mise.jdx.dev/), which installs the version in `mise.toml`:
+To try a change, run a server with this checkout's plugin built in. You need
+[mise](https://mise.jdx.dev/), which installs the Go version in `mise.toml`:
 
 ```bash
 git clone https://github.com/golem-mc/perms.git
 cd perms
-go build -o perms-server ./cmd/server   # with mise: mise exec -- go build ...
-./perms-server --nogui
+mise run dev
 ```
 
-The server writes `server.properties` and the world into the directory it
-runs in, as the vanilla server does. Stop it with `stop` or Ctrl+C.
+This runs `golem-launcher` (a Go tool pinned in `go.mod`) in `dev/`, with the
+golem version `go.mod` requires and this directory as the plugin. The server
+writes `server.properties`, the world and `plugins/` into `dev/`, which git
+ignores. Stop it with `stop` or Ctrl+C.
 
 ## Configuration
 
