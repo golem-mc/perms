@@ -45,9 +45,10 @@ The command is `/luckperms`, also `/lp`, `/perm`, `/perms`, `/permission` and
 `/permissions`. `user`, `group`, `track` also work as `u`, `g`, `t`; in a user
 or group command `permission` = `perm` = `p`, `parent` = `group` = `g`,
 `meta` = `m`, `info` = `i`, `editor` = `e`.
-`<user>` is a name, a UUID, or a selector (`@s`, `@p`, `@a`, `@r`). Most
+`<user>` is a name, a UUID, or, with `resolve-command-selectors: true` in `config.yml`, a
+selector (`@s`, `@p`, `@a`, `@r`). Most
 commands that change data accept a duration and a context list at the end.
-Run `/lp` to see the commands you may use. Each command needs the permission
+Run `/lp help` to see the commands you may use. Each command needs the permission
 `luckperms.<command>` (for subcommands `luckperms.<user|group|track>.<sub>`,
 for example `luckperms.user.permission.set`).
 
@@ -151,8 +152,9 @@ Groups support the same `info`, `permission`, `parent`, `meta`, `editor`,
 
 ## Configuration
 
-On first start the plugin writes `config.yml`, `contexts.json` and the data
-files to `plugins/luckperms/`. Run `/lp reloadconfig` after editing the
+On first start the plugin writes `config.yml` and the data files to
+`plugins/luckperms/`. You can also create a `contexts.json` there to define
+static contexts. Run `/lp reloadconfig` after editing the
 config. Main options and defaults, with the full list in the
 [LuckPerms configuration wiki](https://luckperms.net/wiki/Configuration):
 
