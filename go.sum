@@ -16,8 +16,8 @@ github.com/go-sql-driver/mysql v1.10.2 h1:5TRvGvczDohUMOCRA5aCAXgfSZOo/oNDSFD/2R
 github.com/go-sql-driver/mysql v1.10.2/go.mod h1:M+cqaI7+xxXGG9swrdeUIoPG3Y3KCkF0pZej+SK+nWk=
 github.com/golem-mc/golem v0.0.0-20261120233601-465ac52ea466 h1:u1LihFszk7U03o2fRW85bN56xJL9rHDRvtnTIKy9eOY=
 github.com/golem-mc/golem v0.0.0-20261120233601-465ac52ea466/go.mod h1:oFlU6ijSdw7lNo/gxfCuANfYyklqkw5a9qGaUrbLcms=
-github.com/golem-mc/vault v0.0.0-20261120033259-f75dd900f11e h1:XB45EqRoVDb2aiy6tt2mVuam35rYdwmDvuVKMy2zlfU=
-github.com/golem-mc/vault v0.0.0-20261120033259-f75dd900f11e/go.mod h1:QnYB++avAZBzSn+zq+QsL0CdhlqgahAFkkAj0UsXBe8=
+github.com/golem-mc/vault v0.0.0-20261120163516-3797f133e39b h1:B+bKRp1VqLeSYgk1f6rh5vulC695kHchHmT4KcuQ++k=
+github.com/golem-mc/vault v0.0.0-20261120163516-3797f133e39b/go.mod h1:dojUguh+WFkhMH27DZbjG46a91UdGuIrTE8GWR7bv6w=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
 github.com/google/pprof v0.0.0-20261016150608-1facf8f91b50 h1:PlNWJRxu5APSV0pWqfIsZ0qt9OOGHSWfZQ4zvx+WgWs=
