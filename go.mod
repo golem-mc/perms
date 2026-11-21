@@ -22,7 +22,7 @@ require (
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
-	github.com/klauspost/compress v1.20.4 // indirect
+	github.com/klauspost/compress v1.20.5 // indirect
 	github.com/magiconair/properties v1.18.13 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/nats-io/nkeys v0.4.17 // indirect
