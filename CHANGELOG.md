@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/golem-mc/perms/compare/v0.1.0...v0.1.1) (2026-11-21)
+
+
+### Bug Fixes
+
+* **deps:** update github.com/golem-mc/vault digest to eb56802 ([#25](https://github.com/golem-mc/perms/issues/25)) ([05c26aa](https://github.com/golem-mc/perms/commit/05c26aac5b575c1a0149418dcce1cdf370642d5d))
+
 ## 0.1.0 (2026-11-21)
 
 
