@@ -5,7 +5,7 @@ go 1.27.4
 require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/go-sql-driver/mysql v1.10.2
-	github.com/golem-mc/golem v0.0.0-20261120233601-465ac52ea466
+	github.com/golem-mc/golem v0.0.0-20261121035345-70ebeaa8921f
 	github.com/golem-mc/vault v0.0.0-20261120163516-3797f133e39b
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
@@ -22,7 +22,7 @@ require (
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
-	github.com/klauspost/compress v1.20.4 // indirect
+	github.com/klauspost/compress v1.20.5 // indirect
 	github.com/magiconair/properties v1.18.13 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/nats-io/nkeys v0.4.17 // indirect
