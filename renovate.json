@@ -27,14 +27,25 @@
       "automergeStrategy": "squash"
     },
     {
-      "description": "Indirect Go modules are updated too, not only direct ones.",
+      "description": "Indirect Go modules come from golem and follow its daily digest bump; bumping them here makes plugins raise modules the server uses, which the launcher refuses.",
       "matchManagers": [
         "gomod"
       ],
       "matchDepTypes": [
         "indirect"
       ],
-      "enabled": true
+      "enabled": false
+    },
+    {
+      "description": "Direct dependencies golem also uses follow golem's version through its digest bump, for the same reason.",
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchPackageNames": [
+        "github.com/google/uuid",
+        "go.yaml.in/yaml/v4"
+      ],
+      "enabled": false
     },
     {
       "description": "The go directive in go.mod and the toolchain in mise.toml move together.",
