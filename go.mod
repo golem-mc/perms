@@ -6,7 +6,7 @@ require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/go-sql-driver/mysql v1.10.2
 	github.com/golem-mc/golem v0.1.0
-	github.com/golem-mc/vault v0.0.0-20261121033929-eb5680247d38
+	github.com/golem-mc/vault v0.1.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/lib/pq v1.12.3
