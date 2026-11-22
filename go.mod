@@ -15,7 +15,7 @@ require (
 	github.com/redis/go-redis/v9 v9.23.0
 	go.mongodb.org/mongo-driver/v2 v2.10.1
 	go.yaml.in/yaml/v4 v4.0.0
-	modernc.org/sqlite v1.62.0
+	modernc.org/sqlite v1.63.0
 )
 
 require (
