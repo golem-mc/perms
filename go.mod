@@ -12,7 +12,7 @@ require (
 	github.com/lib/pq v1.12.3
 	github.com/nats-io/nats.go v1.56.0
 	github.com/rabbitmq/amqp091-go v1.17.0
-	github.com/redis/go-redis/v9 v9.24.0
+	github.com/redis/go-redis/v9 v9.24.1
 	go.mongodb.org/mongo-driver/v2 v2.10.1
 	go.yaml.in/yaml/v4 v4.0.0
 	modernc.org/sqlite v1.63.0
