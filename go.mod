@@ -4,7 +4,7 @@ go 1.27.4
 
 require (
 	github.com/BurntSushi/toml v1.6.0
-	github.com/go-sql-driver/mysql v1.10.2
+	github.com/go-sql-driver/mysql v1.11.0
 	github.com/golem-mc/golem v0.2.0
 	github.com/golem-mc/vault v0.1.0
 	github.com/google/uuid v1.6.0
